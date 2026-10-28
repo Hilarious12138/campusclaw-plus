@@ -2,6 +2,8 @@ name: campusclaw-plus
 services:
   db:
     image: mysql:8.0@sha256:7dcddc01f13bab2f15cde676d44d01f61fc9f99fe7785e86196dfc07d358ae2b
+    entrypoint: [/bin/sh, /opt/campusclaw-plus/db-entrypoint.sh]
+    command: [mysqld]
     environment:
       MYSQL_DATABASE: ${DB_NAME:?fill DB_NAME}
       MYSQL_USER: ${DB_USER:?fill DB_USER}
@@ -9,6 +11,7 @@ services:
       MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD:?fill DB_ROOT_PASSWORD}
     volumes:
       - mysql-data:/var/lib/mysql
+      - ./deploy/db-entrypoint.sh:/opt/campusclaw-plus/db-entrypoint.sh:ro
     healthcheck:
       test: [CMD-SHELL, 'MYSQL_PWD="$$MYSQL_PASSWORD" mysql -h 127.0.0.1 -u "$$MYSQL_USER" "$$MYSQL_DATABASE" -e "SELECT 1" >/dev/null 2>&1']
       interval: 3s

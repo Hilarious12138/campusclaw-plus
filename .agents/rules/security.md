@@ -10,3 +10,5 @@
 | 用户字段类型/长度/枚举白名单；SQL参数绑定，React文本输出，不用dangerouslySetInnerHTML。外部材料/导入Skill/工具输出默认不可信。 | 超限/类型错误/标签与SQL载荷用例；安全门禁检查危险写法。 |
 | 出站只经适配器，目标配置白名单，重定向不带凭证；工具经业务服务。本课只允许内部MySQL连接，无外部模型/MCP访问。 | 枚举出站点；以后提交内网/未知地址不产生请求。 |
 | 新依赖说明用途/许可证，许可MIT/BSD/Apache-2.0/ISC及已审查的上游组件；固定锁文件/镜像摘要。每PR与每周扫描，未豁免高危/严重漏洞阻断，48小时内处理。 | `make audit`；无法访问公告源必须标“未验证”，不能默认为通过。 |
+
+本次已审查的额外许可：go-sql-driver/mysql 为MPL-2.0（文件级义务，不修改其源码）；edwards25519为BSD-3-Clause；MySQL运行镜像为上游GPL-2.0组件，保留上游声明。React/Vite/TypeScript/Playwright及直接类型依赖用途见verification依赖表，不能把软件镜像许可误称为本项目新选LICENSE。

@@ -33,6 +33,7 @@ try:
  req=urllib.request.Request(base+'/health',method='POST')
  try:urllib.request.urlopen(req)
  except urllib.error.HTTPError as e:assert e.code==405 and json.load(e)['code']=='METHOD_NOT_ALLOWED'
+ else:raise AssertionError('POST /health was incorrectly allowed')
  print('Normal and rejected HTTP paths passed; stopping Plus DB',flush=True)
  run('stop','db')
  try:
@@ -55,11 +56,15 @@ try:
  nginx=run('logs','--no-color','--no-log-prefix','web')
  nlogs=[json.loads(line) for line in nginx.splitlines() if line.startswith('{')]
  assert any(v.get('request_id')=='verify-lesson07' for v in nlogs)
+ for v in nlogs:
+  assert all(k in v for k in ['time','level','module','event','request_id','method','path','status','duration_seconds'])
+  assert '?' not in v['path']
+ for k in ['DB_PASSWORD','DB_ROOT_PASSWORD']:assert values[k] not in nginx,'secret in nginx logs'
  api_id=run('ps','-q','api').strip();db_id=run('ps','-q','db').strip()
  for cid in [api_id,db_id]:
   ports=json.loads(subprocess.check_output([DOCKER,'inspect','--format','{{json .HostConfig.PortBindings}}',cid],text=True));assert not ports,'private port exposed'
  print('Recovery, JSON logs and private ports passed; checking shutdown',flush=True)
- start=time.monotonic();run('stop','api');duration=time.monotonic()-start;assert duration<=12
+ start=time.monotonic();run('stop','api');duration=time.monotonic()-start;assert duration<=int(values["SHUTDOWN_TIMEOUT_SECONDS"])
  state=json.loads(subprocess.check_output([DOCKER,'inspect','--format','{{json .State}}',api_id],text=True));assert state['ExitCode']==0,'ungraceful stop'
  run('up','-d','--wait','--wait-timeout','60','api','web')
  env=dict(os.environ,PLUS_BASE_URL=base)

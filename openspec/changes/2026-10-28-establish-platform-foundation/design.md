@@ -55,3 +55,5 @@ make check用Docker独立测试容器，不依赖本机Go；前端npm ci/状态�
 - MySQL配置若经FormatDSN再Open会丢失Logger，故使用NewConnector/OpenDB，真实断连验证请求日志保持JSON。
 - check/audit各用独立node_modules卷，避免并行npm ci互相覆盖；浏览器本机依赖另装。
 - 初次骨架涉及多文件工程配置/测试，不是新增整套教学业务；生成OpenSpec技能较长但不重复载入无关内容。
+- 空白上下文检查指出根密码规则缺门禁，补DB入口24字符/不复用校验及正常/失败测试；指出POST误放行可漏判、停机脚本容差过宽、Nginx日志字段未全查，均补实测断言，另加超预算停机单测。
+- 干净clone流程固定为scripts/clean_clone.py（需先提交受验代码）；只清理脚本新建的临时目录/项目/卷，不碰用户主环境。变异流程固定为scripts/mutation.py，finally恢复源码。

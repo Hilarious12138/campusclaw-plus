@@ -29,9 +29,9 @@
 ## 已执行的验证
 
 - OpenSpec 1.13.0 init --tools codex --language zh完成；Codex生成6个Skill，未提供课件同名slash命令。strict使用真实CLI；不改全局profile。项目verify-change经官方quick_validate.py校验通过（临时PyYAML环境）。
-- make check：规则/全历史秘密、Go格式/race/vet、前端3条状态测试及类型/构建、OpenSpec strict。最终补丁镜像结果待下方更新。
-- make acceptance：实际Compose/MySQL/HTTP、未知入口、日志、停机和Chrome；补丁前完整通过一次，补丁版重跑结果待更新。
-- make audit：初始发现Vite高危与Go1.27.1标准库漏洞；已锁定Vite7.3.7、Go1.27.3及govulncheck1.9.0，最终扫描结果待更新，不能把初始失败写成通过。
+- make check：规则/全历史秘密、Go格式/race/vet、前端3条状态测试及类型/构建、OpenSpec strict。最终Go1.27.3补丁镜像已通过，前端3条状态测试、Go race/vet与strict均通过。
+- make acceptance：实际Compose/MySQL/HTTP、未知入口、日志、停机和Chrome；最终补丁版及空白会话反馈修复后均已通过：9条GET探测、POST拒绝、JSON日志和浏览器；最新正常health约个位数毫秒，DB不可达约1500ms，容器正常退出约0.11秒。
+- make audit：初始发现Vite高危与Go1.27.1标准库漏洞；已锁定Vite7.3.7、Go1.27.3及govulncheck1.9.0，最终npm全部依赖0漏洞，Go扫描No vulnerabilities found；初始失败与修复分开保留。
 - 规则生效：service暂加database/sql import，静态检查失败；暂把未知API改200/OK，负向HTTP测试失败；已恢复源码。脱敏记录reports/mutation.json。
 - 原始本机报告与真实Chrome图片在reports/（忽略Git）；正式可提交证据仅含脱敏状态/统计，不含.env或完整Docker环境。
 
@@ -44,7 +44,10 @@
 | 测试验收者 | 正常/失败/边界、真实停库恢复、变异检查、干净clone、独立上下文检查与证据。 |
 
 - 同一人三角色不等同三名成员。独立同伴评审/另一台机器由其他成员从零启动，本人无法代替；本项目按用户明确要求作单人适配，课程是否接受由教师判断，原要求不标通过。
-- 本机CLI空白会话因账号不支持所配置模型失败，未声称通过；另在Codex应用中新建无历史只读会话（01a18017-b55d-7612-acf1-1a4a2ba1415c），只给路径与change进行检查，结果待补。
+- 本机CLI空白会话因账号不支持所配置模型失败；随后在Codex应用新建无历史只读会话（01a18017-b55d-7612-acf1-1a4a2ba1415c），输入仅提供Plus路径、change名与只读验收任务，不带本聊天。
+- 该会话确认规则可发现、分层/命名/默认拒绝符合；初评同时指出记录文件/提交尚未就绪、根密码规则缺校验、停机预算偏宽/缺超预算用例、POST误放行漏判和Nginx字段未全查。记录/提交在会话检查后补齐；代码四项缺口已修复并重跑check/acceptance，不将初评写成无问题通过。
+- 根密码已用DB入口验证≥24字符且不同于普通密码，Python正常/失败测试；生命周期增加超预算强制结束单测；真实停机断言按配置秒数；POST意外成功必失败；Nginx字段及秘密均检查。
+- 新Harness静态检查不等于另一个人运行；未执行第二次独立复核，不虚构“二次review全部通过”。
 - 干净clone使用新目录、独立凭证/Compose项目/端口，不是异机；执行结果待补。
 - 首个发布无上一个运行版本，不假称生产双版本回滚。README提供当前基线新目录重启；骨架无业务表，业务备份恢复N/A，未来上线前必须补。
 - 骨架多文件基础设施与测试不属于一次生成整套业务；不引入GD业务、模型、Qdrant或MCP。
@@ -59,3 +62,22 @@
 ## 最终交付状态
 
 完成后填入实际提交、PR/CI、归档路径、骨架标签及干净clone结果；未完成不提前勾选。
+
+## 依赖用途与许可（本次直接依赖）
+
+| 依赖 | 用途 | 许可审查 |
+| --- | --- | --- |
+| React18/react-dom | 工程状态页 | MIT，保留上游声明 |
+| Vite7.3.7/TypeScript及类型包 | 构建与静态类型 | Vite MIT、TypeScript Apache-2.0、类型MIT |
+| Playwright1.63.0 | 本机Chrome验收 | Apache-2.0，非业务依赖 |
+| go-sql-driver/mysql1.10.1 | MySQL适配器 | MPL-2.0，未修改其源文件 |
+| edwards25519 1.2.0 | MySQL驱动认证依赖 | BSD-3-Clause |
+| MySQL/Go/Nginx/Node上游镜像 | 本课部署构建 | 固定摘要，遵循各镜像上游声明；MySQL GPL-2.0运行组件已显式记录 |
+
+本仓未选新LICENSE，不代表可以移除依赖许可或将全部上游代码声明为自有。
+
+## 可复验命令与限制
+
+- 规范生效：`python3 scripts/mutation.py`，临时文件/代码在finally还原，返回失败即不可称门禁有效。
+- 干净复现：先提交代码，再`python3 scripts/clean_clone.py`；本机3002需空闲，脚本用全新随机凭证/隔离Compose项目，完毕仅删除脚本新建卷与目录。
+- 空白会话：新建无历史Harness，给仓库路径与日期变更名，要求仅凭仓库核对规则可发现性、任务可执行性与当前实现，禁止修改/停机；记录缺口并修复，不预填通过。
