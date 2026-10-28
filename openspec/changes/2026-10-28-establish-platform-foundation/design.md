@@ -26,7 +26,7 @@ MySQL8创建空独立schema；Go启动不要求DB已连通，health如实503并�
 
 ### D4 日志、部署和前端
 
-Go slog单行JSON，注入module/request_id；Nginx也用escape=json记录请求，统一传播X-Request-ID。只映射web→localhost:WEB_PORT，/api与health/live反代Go，/uploads固定404。所有镜像用本机已缓存的上游摘要固定；Go镜像跑非root，凭证只runtime env，无.env COPY。
+Go slog单行JSON，注入module/request_id；Nginx也用escape=json记录请求（duration_seconds为秒，Go duration_ms为毫秒），统一传播X-Request-ID。只映射web→localhost:WEB_PORT，/api与health/live反代Go，/uploads固定404。所有镜像用本机已缓存的上游摘要固定；Go镜像跑非root，凭证只runtime env，无.env COPY。
 
 React18 TS Vite只做工程状态页，stateFromResponse纯函数支持四态单测，真实Chrome验证页面；Vite同源代理web，生产Nginx路径一致。未知静态路径404，不做伪SPA路由。health探测超时和优雅停机可注入测试；信号context控制Shutdown，先排空再关闭DB。
 
@@ -48,3 +48,10 @@ make check用Docker独立测试容器，不依赖本机Go；前端npm ci/状态�
 ## Migration Plan
 
 独立Compose项目campusclaw-plus，建议端口3001。配置必填，docker compose up --build -d --wait后检查/health。数据卷只在本项目命名，down默认保留；GD不改。首版本无业务迁移；回到同提交/标签重建验证可复现，不使用down -v删除用户数据。
+
+## Implementation adjustments
+
+- npm审计发现Vite7.2.0的高危项，按公告固定到7.3.7；Go1.27.1标准库有可达漏洞，固定到1.27.3及镜像摘要，govulncheck改为兼容的1.9.0。
+- MySQL配置若经FormatDSN再Open会丢失Logger，故使用NewConnector/OpenDB，真实断连验证请求日志保持JSON。
+- check/audit各用独立node_modules卷，避免并行npm ci互相覆盖；浏览器本机依赖另装。
+- 初次骨架涉及多文件工程配置/测试，不是新增整套教学业务；生成OpenSpec技能较长但不重复载入无关内容。

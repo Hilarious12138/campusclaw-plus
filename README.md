@@ -2,9 +2,9 @@
 
 基于 CampusClaw-GD 经验独立建设的班级智能教学平台，串起“讲义检索 → 辅助学习 → 作业批改与错题订正”。
 
-当前为第7课项目启动；首次提交只建立说明和忽略规则，下一变更交付可启动骨架。后续才逐步复用GD能力并拓展应用、模板、Skill、MCP、作业、错题与学情；当前不具备这些业务。
+当前交付第7课工程骨架；首次提交只建立说明和忽略规则，后续变更实现了分层、配置、健康检查和日志。后续才逐步复用GD能力并拓展应用、模板、Skill、MCP、作业、错题与学情；当前不具备这些业务。
 
-## 本机运行（骨架变更交付后）
+## 本机运行
 
 依赖 Git、Docker Desktop（Compose v2）；安装时联网，启动后不调用模型。复制 `.env.example` 为本机 `.env`，按下表填值，再执行：
 
@@ -37,3 +37,36 @@ docker compose up --build -d --wait
 郭地单人承担产品负责人、开发者、测试验收者。产品业务角色仍为教师/学生。本人自审不冒充独立同伴评审；同机干净clone不冒充异机验证。
 
 只有骨架首页 `/`、免认证 `/health` 与 `/live` 属于本课；未来按OpenSpec逐项交付教学能力。GD保持冻结，代码如被复用须标来源并在Plus重新验证，不复制其.env、数据库或Git历史。
+
+## 验证与开发
+
+本机运行只需Git和Docker；开发/验收另需Python 3、Make、Node 24、OpenSpec 1.13.0；浏览器验证使用本机Chrome。Mac若docker不在PATH，命令前加 `DOCKER_BIN=/Applications/Docker.app/Contents/Resources/bin/docker`。没有本机Go也能验收。
+
+```sh
+npm install --global @fission-ai/openspec@1.13.0
+make check
+make audit
+# 需要Chrome与Node；先安装前端测试依赖，Docker测试后已有node_modules时不用重复安装。
+npm ci --prefix frontend
+make acceptance
+```
+
+`make check`：规则/全历史秘密扫描、Go格式/race/vet、前端正常/失败/边界状态测试及构建、OpenSpec strict。`make audit`：npm全部依赖高危扫描、Go漏洞扫描；网络失败同样非零，不能算通过。`make acceptance`：真实Compose/HTTP/MySQL故障恢复、匿名health、日志/私有端口、优雅停机及Chrome响应式/错误重试；会短暂停止**Plus自己的**DB/API并恢复，不操作GD。报告和截图在忽略Git的 `reports/`；可提交的脱敏结论在 `docs/lesson-07/verification.md`。
+
+前端开发：`cd frontend && npm ci && npm run dev`；Vite同源代理到本机3001的Nginx。若本机WEB_PORT另改，先在vite.config.ts同步开发代理目标（后续可按需外置开发环境配置）。
+
+贡献流程：先读AGENTS.md和相关规则，建立日期变更并strict，再按骨架任务组实施；调用项目 `verify-change` 技能验证。当前Codex用 `$openspec-propose` / `$openspec-apply-change` / `$openspec-archive-change`；课件 `/opsx-validate` 的实际校验使用 `openspec validate <change> --strict`。无需更改全局OpenSpec profile。
+
+### 配置轮换与隔离
+
+若本机凭证泄露，由郭地立即撤销/轮换并验证旧值失败，记录键名不记值。MySQL已有数据卷时修改.env不会自动改库内口令：先用管理员身份执行受控口令变更，再同步.env、重建API并检查health；保留业务数据，不用down -v当轮换。首次骨架没有GD数据，后续部署也不能复制GD凭证。
+
+### 启停、回到基线与数据
+
+`docker compose down`保留卷；恢复使用同一启动命令。回到已验收基线：在新的clone目录checkout `v0.0.1-skeleton`，填独立.env，使用不同WEB_PORT及 `docker compose -p campusclaw-plus-baseline up --build -d --wait`。首版本没有前一可运行发布，不宣称完成双版本生产回滚；业务迁移上线前再验回滚与备份恢复。
+
+## 学期目标（尚未实现）
+
+教师上传本班讲义，学生检索可追溯片段；教师配置AI应用、版本化提示词模板与材料/技能绑定，学生流式提问。Skill支持解题引导、作业批改、错题讲解，外部工具经授权MCP调用并审计。后续教师发布作业、学生截止前提交、教师复核/改分；扩展个人错题订正、本班学情反馈，最终完成HTTPS公网部署。
+
+当前仅首页工程状态与健康接口可用。没有教学登录、业务表、Qdrant、模型或MCP调用；已有GD完成状态不等于Plus完成。后续按当前change之外的新变更逐项复用验证。
