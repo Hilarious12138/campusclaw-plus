@@ -30,7 +30,7 @@
 
 - OpenSpec 1.13.0 init --tools codex --language zh完成；Codex生成6个Skill，未提供课件同名slash命令。strict使用真实CLI；不改全局profile。项目verify-change经官方quick_validate.py校验通过（临时PyYAML环境）。
 - make check：规则/全历史秘密、Go格式/race/vet、前端3条状态测试及类型/构建、OpenSpec strict。最终Go1.27.3补丁镜像已通过，前端3条状态测试、Go race/vet与strict均通过。
-- make acceptance：实际Compose/MySQL/HTTP、未知入口、日志、停机和Chrome；最终补丁版及空白会话反馈修复后均已通过：9条GET探测、POST拒绝、JSON日志和浏览器；最新正常health约个位数毫秒，DB不可达约1500ms，容器正常退出约0.11秒。
+- make acceptance：实际Compose/MySQL/HTTP、未知入口、日志、停机和Chrome；最终补丁版及空白会话反馈修复后均已通过：9条GET探测、POST拒绝、JSON日志和浏览器；最新正常health约18ms，DB不可达约1500ms，容器正常退出约0.11秒。
 - make audit：初始发现Vite高危与Go1.27.1标准库漏洞；已锁定Vite7.3.7、Go1.27.3及govulncheck1.9.0，最终npm全部依赖0漏洞，Go扫描No vulnerabilities found；初始失败与修复分开保留。
 - 规则生效：service暂加database/sql import，静态检查失败；暂把未知API改200/OK，负向HTTP测试失败；已恢复源码。脱敏记录reports/mutation.json。
 - 原始本机报告与真实Chrome图片在reports/（忽略Git）；正式可提交证据仅含脱敏状态/统计，不含.env或完整Docker环境。
@@ -48,7 +48,7 @@
 - 该会话确认规则可发现、分层/命名/默认拒绝符合；初评同时指出记录文件/提交尚未就绪、根密码规则缺校验、停机预算偏宽/缺超预算用例、POST误放行漏判和Nginx字段未全查。记录/提交在会话检查后补齐；代码四项缺口已修复并重跑check/acceptance，不将初评写成无问题通过。
 - 根密码已用DB入口验证≥24字符且不同于普通密码，Python正常/失败测试；生命周期增加超预算强制结束单测；真实停机断言按配置秒数；POST意外成功必失败；Nginx字段及秘密均检查。
 - 新Harness静态检查不等于另一个人运行；未执行第二次独立复核，不虚构“二次review全部通过”。
-- 干净clone使用新目录、独立凭证/Compose项目/端口，不是异机；执行结果待补。
+- 干净clone已通过：受验提交b2d448b，脚本新建临时目录、随机凭证、独立Compose项目campusclaw-plus-repro-*与端口3002，启动约14.61秒，匿名health 200/OK与MySQL up；随后仅清理其新建卷与目录。这是同机干净clone，不是异机。
 - 首个发布无上一个运行版本，不假称生产双版本回滚。README提供当前基线新目录重启；骨架无业务表，业务备份恢复N/A，未来上线前必须补。
 - 骨架多文件基础设施与测试不属于一次生成整套业务；不引入GD业务、模型、Qdrant或MCP。
 
@@ -61,7 +61,12 @@
 
 ## 最终交付状态
 
-完成后填入实际提交、PR/CI、归档路径、骨架标签及干净clone结果；未完成不提前勾选。
+- 实现提交：39a5b46；空白会话反馈修复提交：b2d448b。首个规范提交与首次说明提交见上文。
+- PR：https://github.com/Hilarious12138/campusclaw-plus/pull/1 。39a5b46与b2d448b的GitHub Actions均实际成功；修复版记录为https://github.com/Hilarious12138/campusclaw-plus/actions/runs/40615067678 。归档后提交继续执行同一门禁。
+- 生效主干规则：main-protection，禁止删除/强推、PR合并、必需GitHub Actions check（integration_id=15368），单人批准数0。
+- 骨架归档目标：openspec/changes/archive/2026-10-28-establish-platform-foundation/；长期规约：openspec/specs/platform-foundation/spec.md。归档后strict再验。
+- 标签目标：v0.0.1-skeleton，主干CI通过并合并后创建，不能将目标写成已存在。最终标签存在性另由Git远端核对。
+- 课程原始“独立peer review/另一台机器复现”仍不标完成；单人适用任务验收不代表教师已批准例外。
 
 ## 依赖用途与许可（本次直接依赖）
 
@@ -81,3 +86,5 @@
 - 规范生效：`python3 scripts/mutation.py`，临时文件/代码在finally还原，返回失败即不可称门禁有效。
 - 干净复现：先提交代码，再`python3 scripts/clean_clone.py`；本机3002需空闲，脚本用全新随机凭证/隔离Compose项目，完毕仅删除脚本新建卷与目录。
 - 空白会话：新建无历史Harness，给仓库路径与日期变更名，要求仅凭仓库核对规则可发现性、任务可执行性与当前实现，禁止修改/停机；记录缺口并修复，不预填通过。
+
+脱敏机器证据：`evidence.json`。实际Chrome截图：`homepage-ready.png`、`homepage-error.png`；错误页使用503注入，仅验证UI，真实停库结果单列在机器证据。

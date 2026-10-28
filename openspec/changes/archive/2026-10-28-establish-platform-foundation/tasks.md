@@ -16,6 +16,8 @@
 ## 3. 交付验证与记录
 
 - [x] 3.1 真实Compose、DB故障恢复、停机与浏览器验证，verify：make acceptance通过，记录匿名health/日志与超时结果。
-- [ ] 3.2 干净clone从README复现，verify：先提交受验代码，再执行scripts/clean_clone.py，在独立临时目录/项目/端口运行health成功并清理脚本自建资源；明确“同机”不冒充异机。
-- [ ] 3.3 仓库/PR/CI与提交历史检查，verify：首次提交仅README/.gitignore，保护规则先于代码、CI通过、全历史秘密扫描无原值。
-- [ ] 3.4 docs/lesson-07/verification.md记录两列表、三角色与限制，verify：逐项真实结果，独立同伴和异机差异明确；适用门禁通过后归档与v0.0.1-skeleton，交付验证不循环计入本任务。
+- [x] 3.2 干净clone从README复现，verify：先提交受验代码，再执行scripts/clean_clone.py，在独立临时目录/项目/端口运行health成功并清理脚本自建资源；明确“同机”不冒充异机。
+- [x] 3.3 仓库/PR/CI与提交历史检查，verify：首次提交仅README/.gitignore，保护规则先于代码、CI通过、全历史秘密扫描无原值。
+- [x] 3.4 docs/lesson-07/verification.md记录两列表、三角色与限制，verify：逐项真实结果，独立同伴和异机差异明确。
+
+任务实际通过后执行归档并打v0.0.1-skeleton；这些交付动作不循环计入上述准备任务。

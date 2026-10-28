@@ -1,0 +1,100 @@
+{
+  "verified_source_commit": "b2d448b",
+  "date": "2026-10-28",
+  "check": "passed",
+  "audit": {
+    "npm_all_dependencies": "0 vulnerabilities",
+    "govulncheck": "No vulnerabilities found",
+    "go": "1.27.3",
+    "vite": "7.3.7"
+  },
+  "acceptance": {
+    "status": "passed",
+    "project": "campusclaw-plus",
+    "checks": [
+      {
+        "path": "/health",
+        "http": 200,
+        "code": "OK",
+        "elapsed_ms": 18.2
+      },
+      {
+        "path": "/health?class_id=other",
+        "http": 400,
+        "code": "INVALID_ARGUMENT",
+        "elapsed_ms": 1.75
+      },
+      {
+        "path": "/api/teachers/materials",
+        "http": 404,
+        "code": "NOT_FOUND",
+        "elapsed_ms": 2.04
+      },
+      {
+        "path": "/api/missing",
+        "http": 404,
+        "code": "NOT_FOUND",
+        "elapsed_ms": 1.73
+      },
+      {
+        "path": "/uploads/guessed.txt",
+        "http": 404,
+        "code": null,
+        "elapsed_ms": 1.04
+      },
+      {
+        "path": "/missing-page",
+        "http": 404,
+        "code": null,
+        "elapsed_ms": 0.97
+      },
+      {
+        "path": "/health",
+        "http": 503,
+        "code": "DEPENDENCY_UNAVAILABLE",
+        "elapsed_ms": 1508.91
+      },
+      {
+        "path": "/live",
+        "http": 200,
+        "code": "OK",
+        "elapsed_ms": 3.78
+      },
+      {
+        "path": "/health",
+        "http": 200,
+        "code": "OK",
+        "elapsed_ms": 4.55
+      }
+    ],
+    "json_request_logs": 163,
+    "shutdown_seconds": 0.11,
+    "browser": "reports/browser.json",
+    "scope": "real Compose/MySQL/HTTP; browser 503 is injected UI case; no teaching business implemented"
+  },
+  "clone": {
+    "status": "passed",
+    "kind": "same-machine clean clone; not independent peer review",
+    "source_commit": "b2d448b3d0134e3dbde6dc5efe2960b758286ed4",
+    "project": "campusclaw-plus-repro-1100bb",
+    "port": 3002,
+    "startup_seconds": 14.61,
+    "runtime_command": "docker compose -p <isolated-project> up --build -d --wait",
+    "private_values": "not recorded"
+  },
+  "mutation": {
+    "reverse_dependency": "blocked",
+    "unregistered_api_success": "tests_failed_as_expected",
+    "source_restored": true
+  },
+  "fresh_context": {
+    "thread_id": "01a18017-b55d-7612-acf1-1a4a2ba1415c",
+    "kind": "new Codex app conversation, no prior history, read-only static review",
+    "initial_findings": "configuration, shutdown and assertion gaps; fixed then tested",
+    "not_independent_human_peer_review": true
+  },
+  "not_completed": [
+    "independent human peer review",
+    "different-machine reproduction"
+  ]
+}

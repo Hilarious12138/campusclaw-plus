@@ -53,7 +53,7 @@ make acceptance
 
 `make check`：规则/全历史秘密扫描、Go格式/race/vet、前端正常/失败/边界状态测试及构建、OpenSpec strict。`make audit`：npm全部依赖高危扫描、Go漏洞扫描；网络失败同样非零，不能算通过。`make acceptance`：真实Compose/HTTP/MySQL故障恢复、匿名health、日志/私有端口、优雅停机及Chrome响应式/错误重试；会短暂停止**Plus自己的**DB/API并恢复，不操作GD。报告和截图在忽略Git的 `reports/`；可提交的脱敏结论在 `docs/lesson-07/verification.md`。
 
-前端开发：`cd frontend && npm ci && npm run dev`；Vite同源代理到本机3001的Nginx。若本机WEB_PORT另改，先在vite.config.ts同步开发代理目标（后续可按需外置开发环境配置）。
+前端开发：`cd frontend && npm ci && npm run dev`；Vite从项目本机.env读取WEB_PORT，仅将该非秘密端口用于同源代理，不将数据库配置注入前端；端口变更无需改代码。
 
 贡献流程：先读AGENTS.md和相关规则，建立日期变更并strict，再按骨架任务组实施；调用项目 `verify-change` 技能验证。当前Codex用 `$openspec-propose` / `$openspec-apply-change` / `$openspec-archive-change`；课件 `/opsx-validate` 的实际校验使用 `openspec validate <change> --strict`。无需更改全局OpenSpec profile。
 
