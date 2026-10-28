@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """Repository invariants; intentionally runnable without external packages."""
-import json,re,subprocess,sys
+import json,re,subprocess,sys,os
 from pathlib import Path
 ROOT=Path(__file__).resolve().parents[1]
 def fail(s):raise SystemExit(s)
@@ -26,6 +26,7 @@ if (ROOT/'.env').exists():
   if '=' in line:
    k,v=line.split('=',1)
    if any(x in k for x in ['PASSWORD','SECRET','TOKEN','API_KEY']) and len(v)>=16:secrets.append(v)
+secrets.extend(v for k,v in os.environ.items() if any(x in k for x in ['PASSWORD','SECRET','TOKEN','API_KEY']) and len(v)>=16)
 patterns=[re.compile(r'gh[pousr]_[A-Za-z0-9]{25,}'),re.compile(r'sk-[A-Za-z0-9_-]{24,}'),re.compile(r'-----BEGIN (?:RSA |EC |OPENSSH )?PRIVATE KEY-----')]
 def scan(data,label):
  if any(v.encode() in data for v in secrets):fail('configured secret detected in '+label)

@@ -1,0 +1,145 @@
+{
+  "source_dirty": false,
+  "project": "CampusClaw Plus",
+  "created_at": "2026-10-28T01:51:36.896Z",
+  "source_commit": "43655c8db0a7d1a956caf814aa22eddbc7042df7",
+  "environment": {
+    "os": "linux",
+    "arch": "x64",
+    "node": "v24.21.0",
+    "browser": "Linux Chromium in Docker"
+  },
+  "scope": "Lesson07 platform foundation F1-F6; teaching business not implemented",
+  "status": "passed",
+  "counts": {
+    "passed": 15,
+    "failed": 0,
+    "blocked": 0
+  },
+  "checks": [
+    {
+      "id": "C01",
+      "name": "规则、配置样例和全部Git历史扫描",
+      "criterion": "无反向依赖，样例无值，秘密不入历史",
+      "status": "passed",
+      "elapsed_ms": 396,
+      "detail": "{\"check\": \"architecture/security/history/config/skill\", \"status\": \"passed\"}\n\n"
+    },
+    {
+      "id": "C02",
+      "name": "数据库根密码与普通密码边界",
+      "criterion": "不足24位或重复必须拒绝，错误不泄露值",
+      "status": "passed",
+      "elapsed_ms": 67,
+      "detail": "\n.\n----------------------------------------------------------------------\nRan 1 test in 0.004s\n\nOK\n"
+    },
+    {
+      "id": "C03",
+      "name": "Go格式、race测试与vet",
+      "criterion": "正常/失败/边界和在途/超预算停机测试通过",
+      "status": "passed",
+      "elapsed_ms": 20644,
+      "detail": "?   \tcampusclaw-plus/cmd/api\t[no test files]\nok  \tcampusclaw-plus/internal/config\t1.014s\n?   \tcampusclaw-plus/internal/domain\t[no test files]\nok  \tcampusclaw-plus/internal/httpapi\t1.118s\nok  \tcampusclaw-plus/internal/lifecycle\t1.066s\n?   \tcampusclaw-plus/internal/repository\t[no test files]\n?   \tcampusclaw-plus/internal/service\t[no test files]\n\n\n"
+    },
+    {
+      "id": "C04",
+      "name": "前端四态测试、类型和构建",
+      "criterion": "正常/失败/边界测试及TypeScript/Vite构建成功",
+      "status": "passed",
+      "elapsed_ms": 2138,
+      "detail": "\n> campusclaw-plus-web@0.0.1 test\n> node --experimental-strip-types --test src/state.test.ts\n\n✔ normal ready S13 (1.383578ms)\n✔ failure HTTP or business rejection S14 (0.15303ms)\n✔ boundary pending and empty S14 (0.154952ms)\nℹ tests 3\nℹ suites 0\nℹ pass 3\nℹ fail 0\nℹ cancelled 0\nℹ skipped 0\nℹ todo 0\nℹ duration_ms 122.778085\n\n\n> campusclaw-plus-web@0.0.1 build\n> tsc --noEmit && vite build\n\nvite v7.3.7 building client environment for production...\ntransforming...\n✓ 27 modules transformed.\nrendering chunks...\ncomputing gzip size...\ndist/index.html                   0.36 kB │ gzip:  0.27 kB\ndist/assets/index-DhaXkZQR.css    1.02 kB │ gzip:  0.53 kB\ndist/assets/index-Bf-37b1D.js   144.05 kB │ gzip: 46.83 kB\n✓ built in 669ms\n\n"
+    },
+    {
+      "id": "C05",
+      "name": "OpenSpec strict",
+      "criterion": "所有当前变更/长期规约strict通过",
+      "status": "passed",
+      "elapsed_ms": 398,
+      "detail": "✓ change/2026-10-28-add-portable-grading\n✓ spec/platform-foundation\nTotals: 2 passed, 0 failed (2 items)\n\n- Validating...\n"
+    },
+    {
+      "id": "C06",
+      "name": "全部npm依赖漏洞审计",
+      "criterion": "无未豁免高危；公告不可达算失败",
+      "status": "passed",
+      "elapsed_ms": 481,
+      "detail": "found 0 vulnerabilities\n\n"
+    },
+    {
+      "id": "C08",
+      "name": "报告失败与缺证据判定",
+      "criterion": "断言失败/缺记录/清理失败/缺env均不能通过",
+      "status": "passed",
+      "elapsed_ms": 299,
+      "detail": "✔ normal report aggregation uses all fifteen required cases (48.429607ms)\n✔ failed assertion makes report and exit fail (45.394898ms)\n✔ empty or missing phases cannot pass (45.472114ms)\n✔ host cleanup failure cannot leave a success report (46.631857ms)\n✔ missing env still produces a failure report without host developer runtimes (4.472559ms)\nℹ tests 5\nℹ suites 0\nℹ pass 5\nℹ fail 0\nℹ cancelled 0\nℹ skipped 0\nℹ todo 0\nℹ duration_ms 261.297518\n\n"
+    },
+    {
+      "id": "C07",
+      "name": "Go可达漏洞审计",
+      "criterion": "govulncheck无可达漏洞；公告不可达算失败",
+      "status": "passed",
+      "elapsed_ms": 1407,
+      "detail": "No vulnerabilities found.\n\n"
+    },
+    {
+      "id": "R01",
+      "name": "匿名健康与配置版本",
+      "criterion": "HTTP200/OK，MySQL up，UTC版本，≤2000ms",
+      "status": "passed",
+      "elapsed_ms": 51,
+      "detail": "{\"version\":\"v0.0.1-skeleton\",\"mysql\":\"up\",\"elapsed_ms\":50}"
+    },
+    {
+      "id": "R02",
+      "name": "非法参数、未知资源及无权限暴露",
+      "criterion": "参数400，未登记教师API/未知API/附件404，不能返回数据",
+      "status": "passed",
+      "elapsed_ms": 17,
+      "detail": "Default deny only; not a teaching JWT permission test"
+    },
+    {
+      "id": "R03",
+      "name": "容器内Chromium响应式与四态",
+      "criterion": "320/768/1280无溢出，正常/加载/空/错误及键盘重试正确",
+      "status": "passed",
+      "elapsed_ms": 1249,
+      "detail": "Real Linux Chromium; empty/loading/error responses injected for UI, real DB failure separate"
+    },
+    {
+      "id": "R04",
+      "name": "真实数据库不可达",
+      "criterion": "停本测试DB：health503/down且超时有界，live仍200",
+      "status": "passed",
+      "elapsed_ms": 74,
+      "detail": "{\"mysql\":\"down\",\"elapsed_ms\":70}"
+    },
+    {
+      "id": "R05",
+      "name": "数据库恢复",
+      "criterion": "恢复本测试DB后health200/OK/up",
+      "status": "passed",
+      "elapsed_ms": 52,
+      "detail": "assertions satisfied"
+    },
+    {
+      "id": "R06",
+      "name": "请求JSON日志与脱敏",
+      "criterion": "Go/Nginx字段完整、ID关联且无查询/秘密",
+      "status": "passed",
+      "elapsed_ms": 1,
+      "detail": "assertions satisfied"
+    },
+    {
+      "id": "R07",
+      "name": "真实优雅退出",
+      "criterion": "API停止退出0且有结构化shutdown事件；在途/预算规则由C03验证",
+      "status": "passed",
+      "elapsed_ms": 0,
+      "detail": "assertions satisfied"
+    }
+  ],
+  "not_applicable": [
+    "未实现的登录/检索/Skill/MCP/作业等教学业务不在当前通过范围",
+    "独立人类同伴评审，不能由自动报告替代"
+  ]
+}

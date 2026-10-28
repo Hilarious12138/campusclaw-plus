@@ -65,7 +65,7 @@
 - PR：https://github.com/Hilarious12138/campusclaw-plus/pull/1 。39a5b46与b2d448b的GitHub Actions均实际成功；修复版记录为https://github.com/Hilarious12138/campusclaw-plus/actions/runs/40615067678 。归档后提交继续执行同一门禁。
 - 生效主干规则：main-protection，禁止删除/强推、PR合并、必需GitHub Actions check（integration_id=15368），单人批准数0。
 - 已完成骨架归档：openspec/changes/archive/2026-10-28-establish-platform-foundation/；长期规约：openspec/specs/platform-foundation/spec.md。归档后长期规约strict已通过。
-- 标签目标：v0.0.1-skeleton，主干CI通过并合并后创建，不能将目标写成已存在。最终标签存在性另由Git远端核对。
+- 已创建并推送标签：v0.0.1-skeleton，指向已合并主干6a638711a9bcc6698fec3c319cd94f52d2523586。
 - 课程原始“独立peer review/另一台机器复现”仍不标完成；单人适用任务验收不代表教师已批准例外。
 
 ## 依赖用途与许可（本次直接依赖）
@@ -88,3 +88,24 @@
 - 空白会话：新建无历史Harness，给仓库路径与日期变更名，要求仅凭仓库核对规则可发现性、任务可执行性与当前实现，禁止修改/停机；记录缺口并修复，不预填通过。
 
 脱敏机器证据：`evidence.json`。实际Chrome截图：`homepage-ready.png`、`homepage-error.png`；错误页使用503注入，仅验证UI，真实停库结果单列在机器证据。
+
+
+## 教师Docker自动验收（后续增量变更）
+
+入口：`sh scripts/grade.sh`，宿主只需Git、sh、Docker与Compose v2；无需安装Go、Python、Node或浏览器。测试使用唯一Compose项目且不发布端口、不挂载Docker socket，结束清理自身容器与卷。报告保留于reports/teacher-*/，HTML内嵌截图，JSON供评分读取；失败、缺证据、清理失败均非零。未来业务必须随对应change增加用例，不以骨架通过代替业务完成。
+
+真实Linux x64验证：[GitHub Actions 40617258614](https://github.com/Hilarious12138/campusclaw-plus/actions/runs/40617258614)，grade与check均success。执行的是PR合并预览提交43655c8db0a7d1a956caf814aa22eddbc7042df7（包含a90a95e），2026-10-28T01:51:36Z生成报告，15通过、0失败、0阻塞；工作树干净。主干已将check与grade共同列为必需门禁。已下载原始artifact，未修改结果，归档为teacher-report.html与teacher-report.json。HTML已实际用浏览器打开核对版式；报告不含本机密码。
+
+| 规约 / Scenario | 自动检查及证据 |
+| --- | --- |
+| G1 / P01 | Linux真实15项：C01-C08静态/历史/单元/构建/strict/漏洞/报告逻辑，R01-R07运行/浏览器/停库恢复/日志/停机 |
+| G1 / P02 | C02配置边界；C08缺.env时shell仍输出失败HTML与15项blocked |
+| G2 / P03、P05 | C08断言失败、缺阶段、清理失败测试，均退出1；不将空列表判通过 |
+| G2 / P04 | 构建与公告调用返回码/超时传播至报告；真实外部依赖成功，不宣称本次故意断网验证 |
+| G3 / P06 | R02未知教师API、未知API、附件404，非法参数400；骨架尚无业务鉴权 |
+| G3 / P07 | Compose无宿主端口/无socket、唯一项目/卷；CI结束清理。macOS正式Plus共存健康；本机浏览器依赖下载受阻，未将本机全流程记为通过 |
+
+负向报告回归5条已通过：成功聚合、断言失败、缺阶段、清理失败、缺.env。这里的构造记录仅用于测试报告判定，不当作业务运行证据。后续改动仍由PR门禁重新完整运行；归档报告只证明其标识的提交。
+
+
+本机复验补充：macOS arm64的首次grade镜像构建停在Chromium下载，已主动中止，入口退出1且产生build阶段失败HTML/JSON；测试服务尚未启动，无遗留测试容器，正式3001 /health仍200/MySQL up。此结果不计通过。最终入口的缺.env失败测试核对15项blocked；安装命令增加600秒超时及15秒强制结束。Linux x64完整通过是本次便携验收的运行依据，不声称所有CPU/网络环境均通过。

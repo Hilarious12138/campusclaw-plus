@@ -38,6 +38,20 @@ docker compose up --build -d --wait
 
 只有骨架首页 `/`、免认证 `/health` 与 `/live` 属于本课；未来按OpenSpec逐项交付教学能力。GD保持冻结，代码如被复用须标来源并在Plus重新验证，不复制其.env、数据库或Git历史。
 
+## 老师验收（Linux / Docker）
+
+克隆本仓库，复制并按上表填好.env；只需要Docker Engine + Compose v2和系统sh，不需要宿主Python、Node、Go或Chrome。建议Docker分配4核、4GiB以上内存，首次构建需联网下载镜像/工具与漏洞公告。
+
+```sh
+sh scripts/grade.sh
+```
+
+可先按“本机运行”部署正式栈再验收，也可直接运行上述命令。验收会另建不发布端口的唯一项目与测试卷，真实执行停库恢复/停API，不碰正式Plus或GD。完成自动清理测试容器/卷，保留报告。macOS若docker不在PATH可在命令前指定DOCKER_BIN；Linux通常无需指定。
+
+报告位置：`reports/teacher-<UTC时间>-<进程号>/report.html`，直接用浏览器打开；`report.json`供自动评分程序读取。HTML内含逐项判据、通过/失败/阻塞、耗时、错误详情与内嵌真实截图，无外部网页依赖。总体通过退出0；必测失败、缺阶段、基础设施或清理失败退出非零。镜像下载或公告源失败不会被写成“通过”，修复网络后重新运行即可。
+
+当前15项覆盖第7课骨架：规则/全历史秘密、配置边界、Go race/vet、前端四态与构建、strict、漏洞、匿名health、默认拒绝、Linux Chromium、真实DB故障/恢复、JSON日志及正常退出。未交付教学业务和独立人类peer review列为不适用，不能据此宣称学期平台全部完成。后续每个业务change必须扩展老师验收用例及Scenario映射。
+
 ## 验证与开发
 
 本机运行只需Git和Docker；开发/验收另需Python 3、Make、Node 24、OpenSpec 1.13.0；浏览器验证使用本机Chrome。Mac若docker不在PATH，命令前加 `DOCKER_BIN=/Applications/Docker.app/Contents/Resources/bin/docker`。没有本机Go也能验收。

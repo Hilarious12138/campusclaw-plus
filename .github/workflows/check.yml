@@ -20,3 +20,26 @@ jobs:
       - run: npm install --global @fission-ai/openspec@1.13.0
       - run: make check
       - run: make audit
+  grade:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Prepare isolated test configuration
+        run: |
+          python3 - <<'PY'
+          import secrets
+          from pathlib import Path
+          values={'WEB_PORT':'3001','APP_ENV':'test','APP_VERSION':'v0.0.1-skeleton','HTTP_ADDR':':8080','DB_ADDR':'db:3306','DB_NAME':'campusclaw_plus','DB_USER':'campusclaw_plus','DB_PASSWORD':secrets.token_hex(24),'DB_ROOT_PASSWORD':secrets.token_hex(24),'DB_TIMEOUT_MS':'1500','SHUTDOWN_TIMEOUT_SECONDS':'10'}
+          Path('.env').write_text(''.join(k+'='+v+'\n' for k,v in values.items()))
+          PY
+      - name: Docker-only teacher grading
+        run: sh scripts/grade.sh
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: teacher-grading-report
+          path: reports/teacher-*/
+          retention-days: 7
