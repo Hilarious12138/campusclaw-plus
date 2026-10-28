@@ -1,7 +1,8 @@
 # public-documentation Specification
 
 ## Purpose
-TBD - created by archiving change 2026-10-28-simplify-public-readme. Update Purpose after archive.
+
+保持公开项目入口简洁，明确实际交付范围与部署验收入口，个人姓名与具体配置教程不放README；详细部署要求由独立文档承载。
 
 ## Requirements
 
