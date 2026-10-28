@@ -1,0 +1,22 @@
+{
+  "name": "campusclaw-plus-web",
+  "version": "0.0.1",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "tsc --noEmit && vite build",
+    "test": "node --experimental-strip-types --test src/state.test.ts",
+    "dev": "vite --host 127.0.0.1"
+  },
+  "dependencies": {
+    "react": "18.3.1",
+    "react-dom": "18.3.1"
+  },
+  "devDependencies": {
+    "@types/react": "18.3.24",
+    "@types/react-dom": "18.3.7",
+    "typescript": "5.9.3",
+    "vite": "7.3.7",
+    "@playwright/test": "1.63.0"
+  }
+}
