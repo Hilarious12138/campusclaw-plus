@@ -2,7 +2,7 @@
 
 ## 每次变更
 - 此仓库是独立Plus项目，GD仅参考；不得改GD或复制其.env、Git元数据、数据卷及完成状态。
-- 先读README、当前change的proposal/design/spec/tasks；按任务组实施，不生成范围外业务。用户要求按第7课四步完成，当前授权包含本变更骨架实施；规划工作流不额外收窄这项明确授权。
+- 先读README、当前change的proposal/design/spec/tasks；按任务组实施，不生成范围外业务。新变更先确认需求与设计，实施依据用户对该变更的授权；已归档骨架不代表后续业务自动获准开发。
 - 常驻安全/测试约束见下；代码涉及前端读`.agents/rules/product.md`，后端读`backend.md`，任意代码读`security.md`与`testing.md`，构建/部署读`operations.md`。规范文件中的“检查”是门禁要求，不能只读标题。
 - 验证时使用`.agents/skills/verify-change/SKILL.md`；不读无关旧changes与长报告，减少上下文。新能力每次建YYYY-MM-DD-kebab-case变更。
 

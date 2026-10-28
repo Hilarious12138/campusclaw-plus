@@ -64,7 +64,7 @@
 - 实现提交：39a5b46；空白会话反馈修复提交：b2d448b。首个规范提交与首次说明提交见上文。
 - PR：https://github.com/Hilarious12138/campusclaw-plus/pull/1 。39a5b46与b2d448b的GitHub Actions均实际成功；修复版记录为https://github.com/Hilarious12138/campusclaw-plus/actions/runs/40615067678 。归档后提交继续执行同一门禁。
 - 生效主干规则：main-protection，禁止删除/强推、PR合并、必需GitHub Actions check（integration_id=15368），单人批准数0。
-- 骨架归档目标：openspec/changes/archive/2026-10-28-establish-platform-foundation/；长期规约：openspec/specs/platform-foundation/spec.md。归档后strict再验。
+- 已完成骨架归档：openspec/changes/archive/2026-10-28-establish-platform-foundation/；长期规约：openspec/specs/platform-foundation/spec.md。归档后长期规约strict已通过。
 - 标签目标：v0.0.1-skeleton，主干CI通过并合并后创建，不能将目标写成已存在。最终标签存在性另由Git远端核对。
 - 课程原始“独立peer review/另一台机器复现”仍不标完成；单人适用任务验收不代表教师已批准例外。
 
