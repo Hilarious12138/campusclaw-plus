@@ -1,0 +1,17 @@
+schema: spec-driven
+context: |
+  CampusClaw Plus，独立仓库，不改CampusClaw-GD。郭地单人承担产品/开发/测试角色。
+  学期主线：讲义入库检索→智能体学习→作业提交/批改/错题讲解，后续错题整理、学情与公网部署。
+  五项平台能力：多应用、版本化提示词模板、班级知识库、Skill导入、授权MCP。
+  React18/TypeScript/Vite，Go net/http，MySQL8，Nginx/Compose；后续引入Qdrant与模型/MCP。
+  当前只做第7课工程规范与骨架，不实现登录、模型、检索或作业。主入口建议3001，与GD隔离。
+  开始读AGENTS及相关rules，只读当前change；已实现与计划分开，证据真实、秘密不入Git。
+rules:
+  proposal:
+    - 写Why、What Changes、Capabilities、Non-goals、一个被放弃的方案与课程单人适配。
+  design:
+    - 具体到接口/配置/分层/错误码/取舍/测试映射；列出不含业务的骨架界限。
+  specs:
+    - ADDED Requirements、Requirement、Scenario英文骨架；GIVEN/WHEN/THEN；明确可观测结果与数值。
+  tasks:
+    - 骨架任务组排最前，每条有verify；未实测全[ ]，禁止提前归档。
