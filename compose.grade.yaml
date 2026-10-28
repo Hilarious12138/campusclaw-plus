@@ -1,0 +1,28 @@
+services:
+  db:
+    extends: {file: compose.yaml, service: db}
+  api:
+    extends: {file: compose.yaml, service: api}
+  web:
+    build: {context: ., dockerfile: deploy/web.Dockerfile}
+    depends_on:
+      api: {condition: service_healthy}
+    healthcheck:
+      test: [CMD-SHELL, 'wget -qO- http://127.0.0.1/health >/dev/null']
+      interval: 3s
+      timeout: 4s
+      retries: 10
+  grader:
+    image: ${GRADE_IMAGE:?run scripts/grade.sh}
+    build: {context: ., dockerfile: deploy/grade.Dockerfile}
+    environment:
+      BASE_URL: http://web
+      APP_VERSION: ${APP_VERSION:?fill APP_VERSION}
+      DB_TIMEOUT_MS: ${DB_TIMEOUT_MS:?fill DB_TIMEOUT_MS}
+      DB_PASSWORD: ${DB_PASSWORD:?fill DB_PASSWORD}
+      DB_ROOT_PASSWORD: ${DB_ROOT_PASSWORD:?fill DB_ROOT_PASSWORD}
+    volumes:
+      - ${GRADE_REPORT_DIR:?run scripts/grade.sh}:/reports
+      - ./.git:/work/.git:ro
+volumes:
+  mysql-data:

@@ -1,0 +1,56 @@
+import fs from 'node:fs';
+import path from 'node:path';
+import assert from 'node:assert/strict';
+import {spawnSync} from 'node:child_process';
+import {createRequire} from 'node:module';
+const require=createRequire('/work/frontend/package.json');
+const dir=process.env.GRADE_RESULT_DIR||'/reports';fs.mkdirSync(dir,{recursive:true});
+const phase=process.argv[2];const file=path.join(dir,phase+'.json');let rows=[];
+const secrets=Object.entries(process.env).filter(([k,v])=>/PASSWORD|SECRET|TOKEN|API_KEY/.test(k)&&v.length>=16).map(([,v])=>v);
+const redact=v=>secrets.reduce((s,k)=>s.split(k).join('[REDACTED]'),String(v));
+const save=()=>fs.writeFileSync(file,JSON.stringify(rows,null,2));
+async function test(id,name,criterion,fn){const start=performance.now();try{const detail=await fn();rows.push({id,name,criterion,status:'passed',elapsed_ms:Math.round(performance.now()-start),detail:redact(detail??'assertions satisfied')});}catch(e){rows.push({id,name,criterion,status:'failed',elapsed_ms:Math.round(performance.now()-start),detail:redact(e.stack||e).slice(0,8000)});}save();console.log(`${rows.at(-1).status}: ${id} ${name}`);}
+function cmd(exe,args,cwd='/work',limit=240000){const p=spawnSync(exe,args,{cwd,encoding:'utf8',timeout:limit,env:process.env,maxBuffer:8*1024*1024});if(p.error||p.status!==0)throw new Error(redact(p.error?.message||p.stdout+'\n'+p.stderr));return redact((p.stdout+'\n'+p.stderr).slice(-6000));}
+async function http(url,status,code){const start=performance.now();const r=await fetch(process.env.BASE_URL+url,{signal:AbortSignal.timeout(12000),headers:{'X-Request-ID':'teacher-grade'}});const text=await r.text();for(const secret of secrets)assert.equal(text.includes(secret),false,'secret in response');assert.equal(r.status,status,`HTTP ${url}`);if(code){const j=JSON.parse(text);assert.equal(j.code,code);if(status>=400&&code!=='DEPENDENCY_UNAVAILABLE')assert.equal(j.data,undefined,'rejected response leaked data');assert.equal(j.request_id,r.headers.get('x-request-id'));assert.ok(j.request_id);return {j,ms:performance.now()-start};}return {ms:performance.now()-start};}
+if(phase==='checks'){
+ await test('C01','规则、配置样例和全部Git历史扫描','无反向依赖，样例无值，秘密不入历史',()=>cmd('python3',['scripts/check.py']));
+ await test('C02','数据库根密码与普通密码边界','不足24位或重复必须拒绝，错误不泄露值',()=>cmd('python3',['-m','unittest','discover','-s','scripts','-p','test_*.py']));
+ await test('C03','Go格式、race测试与vet','正常/失败/边界和在途/超预算停机测试通过',()=>{assert.equal(cmd('gofmt',['-l','.'],'/work/backend').trim(),'');return cmd('go',['test','-race','./...'],'/work/backend')+cmd('go',['vet','./...'],'/work/backend');});
+ await test('C04','前端四态测试、类型和构建','正常/失败/边界测试及TypeScript/Vite构建成功',()=>cmd('npm',['test'],'/work/frontend')+cmd('npm',['run','build'],'/work/frontend'));
+ await test('C05','OpenSpec strict','所有当前变更/长期规约strict通过',()=>cmd('openspec',['validate','--all','--strict']));
+ await test('C06','全部npm依赖漏洞审计','无未豁免高危；公告不可达算失败',()=>cmd('npm',['audit','--audit-level=high'],'/work/frontend',120000));
+ await test('C08','报告失败与缺证据判定','断言失败/缺记录/清理失败/缺env均不能通过',()=>cmd('node',['--test','scripts/test_grader.mjs']));
+ await test('C07','Go可达漏洞审计','govulncheck无可达漏洞；公告不可达算失败',()=>cmd('govulncheck',['./...'],'/work/backend',180000));
+}else if(phase==='healthy'){
+ await test('R01','匿名健康与配置版本','HTTP200/OK，MySQL up，UTC版本，≤2000ms',async()=>{const {j,ms}=await http('/health',200,'OK');assert.equal(j.data.dependencies.mysql,'up');assert.equal(j.data.version,process.env.APP_VERSION);assert.ok(j.data.time.endsWith('Z'));assert.ok(ms<=2000);return JSON.stringify({version:j.data.version,mysql:'up',elapsed_ms:Math.round(ms)});});
+ await test('R02','非法参数、未知资源及无权限暴露','参数400，未登记教师API/未知API/附件404，不能返回数据',async()=>{await http('/health?class_id=other',400,'INVALID_ARGUMENT');await http('/api/teachers/materials',404,'NOT_FOUND');await http('/api/missing',404,'NOT_FOUND');await http('/uploads/guessed.txt',404);const r=await fetch(process.env.BASE_URL+'/health',{method:'POST'});assert.equal(r.status,405);assert.equal((await r.json()).code,'METHOD_NOT_ALLOWED');return 'Default deny only; not a teaching JWT permission test';});
+ await test('R03','容器内Chromium响应式与四态','320/768/1280无溢出，正常/加载/空/错误及键盘重试正确',async()=>{
+  const {chromium}=require('@playwright/test');const browser=await chromium.launch({headless:true,executablePath:'/usr/bin/chromium-browser',args:['--no-sandbox','--disable-dev-shm-usage']});
+  try{const page=await browser.newPage();for(const width of [320,768,1280]){await page.setViewportSize({width,height:900});await page.goto(process.env.BASE_URL);await page.getByRole('status').filter({hasText:'服务已就绪'}).waitFor();assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth),false);}
+   await page.screenshot({path:path.join(dir,'homepage.png'),fullPage:true});
+   await page.route('**/health',r=>r.fulfill({status:200,contentType:'application/json',body:'{"code":"OK"}'}));await page.getByRole('button',{name:'重新检查'}).click();await page.getByRole('status').filter({hasText:'未返回可用状态'}).waitFor();
+   await page.unroute('**/health');await page.route('**/health',r=>r.fulfill({status:503,contentType:'application/json',body:'{"code":"DEPENDENCY_UNAVAILABLE"}'}));await page.getByRole('button',{name:'重新检查'}).click();await page.getByRole('alert').waitFor();await page.screenshot({path:path.join(dir,'error.png'),fullPage:true});
+   await page.unroute('**/health');let release;const held=new Promise(r=>release=r);await page.route('**/health',async r=>{await held;await r.continue();});await page.getByRole('button',{name:'重新检查'}).click();await page.getByRole('status').filter({hasText:'正在检查服务'}).waitFor();release();await page.getByRole('status').filter({hasText:'服务已就绪'}).waitFor();await page.unroute('**/health');await page.getByRole('button',{name:'重新检查'}).focus();await page.keyboard.press('Enter');await page.getByRole('status').filter({hasText:'服务已就绪'}).waitFor();
+  }finally{await browser.close();}return 'Real Linux Chromium; empty/loading/error responses injected for UI, real DB failure separate';
+ });
+}else if(phase==='down'){
+ await test('R04','真实数据库不可达','停本测试DB：health503/down且超时有界，live仍200',async()=>{const {j,ms}=await http('/health',503,'DEPENDENCY_UNAVAILABLE');assert.equal(j.data.dependencies.mysql,'down');assert.ok(ms<=Number(process.env.DB_TIMEOUT_MS)+1000);await http('/live',200,'OK');return JSON.stringify({mysql:'down',elapsed_ms:Math.round(ms)});});
+}else if(phase==='recovered'){
+ await test('R05','数据库恢复','恢复本测试DB后health200/OK/up',async()=>{const {j}=await http('/health',200,'OK');assert.equal(j.data.dependencies.mysql,'up');});
+}else if(phase==='stopped'){
+ await test('R06','请求JSON日志与脱敏','Go/Nginx字段完整、ID关联且无查询/秘密',()=>{for(const [f,duration] of [['api.log','duration_ms'],['web.log','duration_seconds']]){const text=fs.readFileSync(path.join(dir,f),'utf8');for(const s of secrets)assert.equal(text.includes(s),false);const entries=text.split('\n').filter(l=>l.startsWith('{')).map(l=>JSON.parse(l));const requests=entries.filter(e=>e.event==='request');assert.ok(requests.some(e=>e.request_id==='teacher-grade'));for(const r of requests){for(const k of ['time','level','module','event','request_id','method','path','status',duration])assert.ok(k in r);assert.equal(r.path.includes('?'),false);}}});
+ await test('R07','真实优雅退出','API停止退出0且有结构化shutdown事件；在途/预算规则由C03验证',()=>{assert.equal(process.env.API_EXIT_CODE,'0');const logs=fs.readFileSync(path.join(dir,'api.log'),'utf8');assert.ok(logs.split('\n').filter(l=>l.startsWith('{')).some(l=>JSON.parse(l).event==='shutdown'));});
+}else if(phase==='finalize'){
+ const expected={checks:['C01','C02','C03','C04','C05','C06','C07','C08'],healthy:['R01','R02','R03'],down:['R04'],recovered:['R05'],stopped:['R06','R07']};const all=[];
+ for(const [p,ids] of Object.entries(expected)){let found=[];try{found=JSON.parse(fs.readFileSync(path.join(dir,p+'.json'),'utf8'));}catch{}all.push(...found);for(const id of ids)if(!found.some(r=>r.id===id))all.push({id,name:p+'阶段未完成',status:'blocked',criterion:'必测项必须执行，不得缺记录',elapsed_ms:0,detail:'前置构建/部署或该阶段失败，请查看infra.log和runner.log'});}
+ if(process.env.HOST_FAILURE==='1'&&!all.some(r=>r.status!=='passed'))all.push({id:'INFRA',name:'宿主编排或清理失败',status:'failed',criterion:'部署及隔离清理均必须成功',elapsed_ms:0,detail:'阶段：'+(process.env.HOST_FAILURE_REASON||'unknown')+'；请查看infra.log'});
+ const failure=all.some(r=>r.status!=='passed');let sha='unavailable';try{sha=cmd('git',['rev-parse','HEAD']).trim();}catch{}
+ let dirty=true;try{dirty=cmd('git',['status','--porcelain']).trim()!=='';}catch{}
+ const report={source_dirty:dirty,project:'CampusClaw Plus',created_at:new Date().toISOString(),source_commit:sha,environment:{os:process.platform,arch:process.arch,node:process.version,browser:'Linux Chromium in Docker'},scope:'Lesson07 platform foundation F1-F6; teaching business not implemented',status:failure?'failed':'passed',counts:{passed:all.filter(r=>r.status==='passed').length,failed:all.filter(r=>r.status==='failed').length,blocked:all.filter(r=>r.status==='blocked').length},checks:all,not_applicable:['未实现的登录/检索/Skill/MCP/作业等教学业务不在当前通过范围','独立人类同伴评审，不能由自动报告替代']};
+ fs.writeFileSync(path.join(dir,'report.json'),redact(JSON.stringify(report,null,2)));
+ const e=v=>redact(v??'').replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;').replaceAll('"','&quot;');
+ const images=['homepage.png','error.png'].filter(f=>fs.existsSync(path.join(dir,f))).map(f=>`<h2>${e(f)}</h2><img alt="${e(f)}" src="data:image/png;base64,${fs.readFileSync(path.join(dir,f)).toString('base64')}">`).join('');
+ fs.writeFileSync(path.join(dir,'report.html'),`<!doctype html><html lang="zh-CN"><meta charset="utf-8"><meta name="viewport" content="width=device-width"><title>CampusClaw Plus 自动验收报告</title><style>body{max-width:1100px;margin:32px auto;padding:20px;font:16px/1.6 system-ui;color:#203b36}table{border-collapse:collapse;width:100%}td,th{border:1px solid #ccd9d2;padding:10px;text-align:left;vertical-align:top}.passed{color:#176d45}.failed,.blocked{color:#b32626}pre{white-space:pre-wrap;overflow-wrap:anywhere;background:#f1f5f2;padding:12px}img{max-width:100%;border:1px solid #ccd9d2}small{color:#58675f}</style><h1>CampusClaw Plus 自动验收报告</h1><h2 class="${report.status}">总体：${failure?'未通过':'通过'}</h2><p>提交：${e(sha)}（工作树${dirty?'有变更':'干净'}）<br>时间：${e(report.created_at)}<br>环境：Linux容器 / ${e(report.environment.arch)}<br>范围：第7课工程骨架，不能据此宣称学期业务已完成。</p><p>通过 ${report.counts.passed}；失败 ${report.counts.failed}；阻塞 ${report.counts.blocked}。必测项失败或未执行均不可通过。</p><table><tr><th>用例</th><th>判据</th><th>结果/耗时</th></tr>${all.map(r=>`<tr><td>${e(r.id)} ${e(r.name)}</td><td>${e(r.criterion)}</td><td class="${e(r.status)}">${e(r.status)} / ${e(r.elapsed_ms)} ms</td></tr>`).join('')}</table><h2>逐项证据</h2>${all.map(r=>`<details ${r.status!=='passed'?'open':''}><summary>${e(r.id)} ${e(r.name)}</summary><pre>${e(r.detail)}</pre></details>`).join('')}<h2>不适用与限制</h2><ul>${report.not_applicable.map(n=>`<li>${e(n)}</li>`).join('')}</ul><p>UI异常截图使用注入响应；真实数据库故障另由R04验证。当前报告不代替人类独立评审。</p>${images}</html>`);
+ console.log(JSON.stringify({status:report.status,...report.counts}));process.exitCode=failure?1:0;
+}else throw new Error('unknown grading phase');
+if(phase!=='finalize'&&rows.some(r=>r.status==='failed'))process.exitCode=1;
