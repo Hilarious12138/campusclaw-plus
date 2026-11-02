@@ -6,6 +6,7 @@ context: |
   React18/TypeScript/Vite，Go net/http，MySQL8，Nginx/Compose；后续引入Qdrant与模型/MCP。
   当前只做第7课工程规范与骨架，不实现登录、模型、检索或作业。主入口建议3001，与GD隔离。
   开始读AGENTS及相关rules，只读当前change；已实现与计划分开，证据真实、秘密不入Git。
+  每次开发先写齐proposal.md、design.md、specs/<能力>/spec.md、tasks.md并给概览，用户敲定后才实施；禁止先改后补。已确认范围的连续工作更新同一change。
 rules:
   proposal:
     - 写Why、What Changes、Capabilities、Non-goals、一个被放弃的方案与课程单人适配。
