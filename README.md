@@ -34,3 +34,5 @@ sh scripts/grade.sh
 - `docs/`：部署说明与验证记录。
 
 开发前阅读 [AGENTS.md](AGENTS.md)，按规约实施并通过 `make check`。验证证据见[第 7 课记录](docs/lesson-07/verification.md)。
+
+第7课展示顺序见[仓库讲解路线](docs/lesson-07/showcase.md)。

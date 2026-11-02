@@ -109,3 +109,24 @@
 
 
 本机复验补充：macOS arm64的首次grade镜像构建停在Chromium下载，已主动中止，入口退出1且产生build阶段失败HTML/JSON；测试服务尚未启动，无遗留测试容器，正式3001 /health仍200/MySQL up。此结果不计通过。最终入口的缺.env失败测试核对15项blocked；安装命令增加600秒超时及15秒强制结束。Linux x64完整通过是本次便携验收的运行依据，不声称所有CPU/网络环境均通过。
+
+
+## 2026-11-02 八类规范与评分展示完善
+
+依据：用户提供A落位30/B覆盖20/C可判定30/D组织20评分图；用户授权补全AI、数据、评审三类。本次只整理文档，不实现教学业务，不更换技术栈。规划提交2ef1c2c，沿用2026-10-28-maintain-eight-engineering-standards变更。
+
+- A：AGENTS显式链接八份规则及读取条件；verify-change的SKILL.md含name/description。普通rules不是仅放目录就自动加载；依据官方Codex文档说明AGENTS与Skill的分工，未加无效globs/alwaysApply。
+- B：product/backend/security/testing/operations/ai/data/review八份独立文件已齐，后三类从AGENTS迁出；保留跨领域边界，避免复制正文。
+- C：AI补12题与注入/引用/超时失败判据；数据补归属、迁移、副本删除与RPO/RTO；review明确Done、门禁与缺证据失败。AI评测、业务删除/恢复和业务权限均未实施，不计通过。
+- D：design/spec/tasks与验证记录关联，README链接showcase.md讲解稿；修正安全/运维规范对迁移后部署文档的引用。
+
+本次实际检查：八文件非空且有检查方式、AGENTS八路径、迁移章节无重复、README/showcase本地链接有效；git diff --check通过；OpenSpec全量strict通过。make check首次因Docker daemon未启动失败；启动Docker重跑退出0，覆盖历史/静态、配置、Go race/vet、前端测试/构建、报告5条回归与strict。纯文档未重跑本机停库/浏览器完整验收；历史teacher-report只证明其2026-10-28提交。后续GitHub合并仍须check/grade通过，不将本地结果写成已合并。
+
+| 本次能力 / Scenario | 检查与状态 |
+| --- | --- |
+| E1 / S01 | 八份文件与AGENTS引用已核对，旧AI/数据/评审正文已迁移 |
+| E2 / S02、S03 | 四规划文件先存在；用户批准后三类后实施；待业务验证明确标注 |
+| E3 / S04 | AI评测、删除副本、恢复目标及Done均有动作/失败判据；仅规范完成 |
+| E4 / S05 | showcase本地链接有效，历史报告日期与scope限制清楚；未宣称新Harness实际复验 |
+
+未完成项：本次新增规范的空白会话实际遵循检查、独立人类peer review与未来业务专项验证。文件/元数据/静态检查不能替代这些验证，教师评分由教师决定。
