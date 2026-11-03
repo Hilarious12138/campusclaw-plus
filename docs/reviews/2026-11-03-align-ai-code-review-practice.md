@@ -60,5 +60,6 @@
 
 - 本地链接、README边界、评审表结构和既定项目目标核对通过；git diff --check、OpenSpec全量strict、静态/历史秘密检查与make check均实际退出0。make check包含配置测试、Go race/vet、前端测试/构建及报告回归。纯文档未单独重跑本机停库验收，GitHub既有check/grade仍作为合并门禁。
 - GitHub：推送前已向用户说明更新内容和原因；PR https://github.com/Hilarious12138/campusclaw-plus/pull/5 。实施提交f74e0bd的check/grade已实际通过：https://github.com/Hilarious12138/campusclaw-plus/actions/runs/41625620378 。本次归档后继续由相同门禁验证，未通过最终门禁前不称已合并。
+- 归档校验发现长期spec的Purpose少于50字符，strict未通过；已补全目的段落并重新校验，不将这次失败记录为通过。
 - 修订：原稿偏目录与实现细节，改为成果→原因→阶段风险→审核交付；review规则增加与docs模板的关联。未编造业务缺陷修复或人类评审意见。
 - 人工逐段审阅：未完成；独立同学交叉评审：未完成；单人课程适配：待教师确认。当前记录不满足课件全部人工流程。
