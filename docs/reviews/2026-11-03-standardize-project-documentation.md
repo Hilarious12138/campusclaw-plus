@@ -48,4 +48,6 @@
 
 ## 实际验证
 
-当前树内容/路径扫描、内部链接、114份备份摘要和原始机器摘要一致性已通过；OpenSpec全量strict、静态/历史秘密检查、git diff --check和make check均实际退出0。现有报告回归保留15项与失败语义；最终CI grade尚待执行，不预填。人工评审仍未完成。
+当前树内容/路径扫描、内部链接、114份备份摘要和原始机器摘要一致性已通过；OpenSpec全量strict、静态/历史秘密检查、git diff --check和make check均实际退出0。现有报告回归保留15项与失败语义；实施提交f542bba的GitHub check/grade已实际通过，15项必测成功；artifact为acceptance-report，报告目录前缀acceptance-，scope为Platform foundation F1-F6。已下载检查HTML/JSON并查看实际截图，当前页面角标为工程基线；报告内容使用通用项目命名。人工评审仍未完成。
+
+证据：[实施版本CI](https://github.com/Hilarious12138/campusclaw-plus/actions/runs/41633637659)、[PR7](https://github.com/Hilarious12138/campusclaw-plus/pull/7)。归档后最终版本仍受check/grade约束，未通过前不称已合并。

@@ -33,3 +33,7 @@ sh scripts/grade.sh
 - 同机干净clone不是异机复现；AI辅助静态核对不是独立人类评审。两项独立验证仍待完成。
 - 当前没有业务表、登录、Qdrant、模型或MCP调用。业务授权、AI评测、事务/并发、一致性、数据删除与恢复须随相应change验证。
 - 原始个人材料已单独保存；公开记录只保留项目适用范围。当前文件整理不改变旧提交或标签内容。
+
+## 项目文档与验收命名更新
+
+2026-11-03，实施提交f542bba通过[Linux check/grade](https://github.com/Hilarious12138/campusclaw-plus/actions/runs/41633637659)。15项必测通过，CI产物名acceptance-report、输出目录acceptance-前缀及通用报告范围均已检查；实际浏览器截图角标为工程基线。范围只涵盖基础能力，不包含尚未实现的业务。最终归档版本由PR门禁继续验证。
