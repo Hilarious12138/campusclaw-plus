@@ -1,12 +1,12 @@
 #!/bin/sh
-# Teacher entry: POSIX shell + Docker Compose only. No host language runtimes/browser.
+# Portable acceptance entry: POSIX shell + Docker Compose only. No host language runtimes/browser.
 set -eu
 cd "$(dirname "$0")/.."
 DOCKER=${DOCKER_BIN:-docker}
 stamp=$(date -u +%Y%m%dT%H%M%SZ)
 PROJECT="campusclaw-plus-grade-$(date +%s)-$$"
 export GRADE_IMAGE="$PROJECT-grader"
-export GRADE_REPORT_DIR="$PWD/reports/teacher-$stamp-$$"
+export GRADE_REPORT_DIR="$PWD/reports/acceptance-$stamp-$$"
 mkdir -p "$GRADE_REPORT_DIR"
 failed=0
 image_ready=0

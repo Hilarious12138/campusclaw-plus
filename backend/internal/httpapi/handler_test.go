@@ -23,7 +23,7 @@ func setup(p probe) (*bytes.Buffer, service.Health) {
 func TestNormalHealthLogS08S10(t *testing.T) {
 	b, s := setup(func(context.Context) error { return nil })
 	r := httptest.NewRequest("GET", "/health", nil)
-	r.Header.Set("X-Request-ID", "verify-lesson07")
+	r.Header.Set("X-Request-ID", "verify-platform")
 	w := httptest.NewRecorder()
 	Handler(s, slog.New(slog.NewJSONHandler(b, nil))).ServeHTTP(w, r)
 	var v struct {
@@ -38,11 +38,11 @@ func TestNormalHealthLogS08S10(t *testing.T) {
 	}
 	var raw map[string]any
 	json.Unmarshal(w.Body.Bytes(), &raw)
-	if w.Code != 200 || v.Code != "OK" || v.Data.Version != "test-version" || v.Data.Dependencies["mysql"] != "up" || raw["request_id"] != "verify-lesson07" || w.Header().Get("X-Request-ID") != "verify-lesson07" {
+	if w.Code != 200 || v.Code != "OK" || v.Data.Version != "test-version" || v.Data.Dependencies["mysql"] != "up" || raw["request_id"] != "verify-platform" || w.Header().Get("X-Request-ID") != "verify-platform" {
 		t.Fatal(w.Body.String())
 	}
 	var log map[string]any
-	if json.Unmarshal(b.Bytes(), &log) != nil || log["request_id"] != "verify-lesson07" {
+	if json.Unmarshal(b.Bytes(), &log) != nil || log["request_id"] != "verify-platform" {
 		t.Fatal("log correlation")
 	}
 	for _, k := range []string{"time", "level", "module", "event", "request_id", "method", "path", "status", "duration_ms"} {

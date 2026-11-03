@@ -1,6 +1,6 @@
 ## Context
 
-Plus新仓只有首次说明提交，无业务源码；见proposal。用户已要求完成第7课四步，实施边界为骨架，未来教学目标写README路线图。
+Plus新仓只有首次说明提交，无业务源码；见proposal。用户已要求完成基础阶段四步，实施边界为骨架，未来教学目标写README路线图。
 
 ## Goals / Non-Goals
 
@@ -30,18 +30,18 @@ Go slog单行JSON，注入module/request_id；Nginx也用escape=json记录请求
 
 React18 TS Vite只做工程状态页，stateFromResponse纯函数支持四态单测，真实Chrome验证页面；Vite同源代理web，生产Nginx路径一致。未知静态路径404，不做伪SPA路由。health探测超时和优雅停机可注入测试；信号context控制Shutdown，先排空再关闭DB。
 
-### D5 验证与课程适配
+### D5 验证与流程适配
 
 make check用Docker独立测试容器，不依赖本机Go；前端npm ci/状态测试/类型检查/构建，Go test-race/vet，Python静态结构/秘密历史扫描，OpenSpec strict。make acceptance以Plus独立Compose执行匿名健康、参数/方法/未知路由、停DB、恢复、JSON日志、停止耗时，并真实Chrome验证。禁止操作GD服务。
 
-正常/失败/边界标识与S01..S16写入docs/lesson-07/verification.md。另做分层/放行变异验证与干净clone验证；外部公告审计独立make audit，联网失败不写通过。第一版本没有前一运行版本，只验证当前标签重启，不假造回滚。
+正常/失败/边界标识与S01..S16写入docs/verification/platform-foundation.md。另做分层/放行变异验证与干净clone验证；外部公告审计独立make audit，联网失败不写通过。第一版本没有前一运行版本，只验证当前标签重启，不假造回滚。
 
-郭地三角色自审，独立同伴/异机不能完成就记差异；空白Harness另启无上下文进程验证，没执行前不勾选。首次提交README/.gitignore，其后规则/OpenSpec提交先于实现；PR经CI后合并。
+维护者按不同职责自审，独立同伴/异机不能完成就记差异；空白Harness另启无上下文进程验证，没执行前不勾选。首次提交README/.gitignore，其后规则/OpenSpec提交先于实现；PR经CI后合并。
 
 ## Risks / Trade-offs
 
-- 课程写slash命令而本机Codex生成6个项目Skill → 使用真实openspec CLI和Skill；validate以CLI strict执行，记录映射，不编造命令。
-- 课件无权限要求与纯骨架冲突 → 以默认拒绝未注册资源体现边界，不引入假登录；未来业务变更补完整401/403/跨班404场景。
+- 外部命令约定与当前Codex的项目Skill形式不同 → 使用真实openspec CLI和Skill；validate以CLI strict执行，记录映射，不编造命令。
+- 未登记业务资源的访问边界需与纯骨架范围一致 → 以默认拒绝未注册资源体现边界，不引入假登录；未来业务变更补完整401/403/跨班404场景。
 - 依赖扫描/镜像下载受网络影响 → 缓存摘要复用、记录网络失败，不能假通过。
 - 新项目无前一版本/真实业务数据 → 回滚与数据恢复不适用部分写N/A，未来首次业务上线前补演练。
 

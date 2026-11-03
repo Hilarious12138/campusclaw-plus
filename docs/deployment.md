@@ -12,7 +12,7 @@ docker compose up --build -d --wait
 | --- | --- |
 | WEB_PORT | 未占用端口，建议3001；GD的3000不受影响 |
 | APP_ENV | local，测试环境用test |
-| APP_VERSION | 本课填v0.0.1-skeleton |
+| APP_VERSION | 当前部署版本，例如v0.0.2-grading |
 | HTTP_ADDR | 容器内监听地址，填:8080 |
 | DB_ADDR | Compose内部MySQL地址，填db:3306 |
 | DB_NAME | 独立数据库名，填campusclaw_plus |
