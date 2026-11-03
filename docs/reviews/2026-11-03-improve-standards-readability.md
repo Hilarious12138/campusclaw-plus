@@ -35,4 +35,4 @@
 
 ## 实际验证与交付
 
-八文件名/路径与AGENTS引用、要求/检查结构、全部原数字及关键技术标识的辅助扫描、本地链接、git diff --check、OpenSpec全量strict、静态/历史秘密扫描和make check均实际通过。已在推送前说明改动与原因；最终GitHub check/grade仍待执行，不预填。纯文档未新增运行测试或修改业务代码，独立人类评审仍未完成。
+八文件名/路径与AGENTS引用、要求/检查结构、全部原数字及关键技术标识的辅助扫描、本地链接、git diff --check、OpenSpec全量strict、静态/历史秘密扫描和make check均实际通过。已在推送前说明改动与原因；实施提交4a4eb2b的GitHub check/grade均实际成功，见[运行41650778943](https://github.com/Hilarious12138/campusclaw-plus/actions/runs/41650778943)。[PR8](https://github.com/Hilarious12138/campusclaw-plus/pull/8)记录变更；归档后最终版本继续受门禁约束，未通过前不称已合并。纯文档未新增运行测试或修改业务代码，独立人类评审仍未完成。
