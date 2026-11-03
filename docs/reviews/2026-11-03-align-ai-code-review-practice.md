@@ -45,6 +45,7 @@
 | 当前change/design.md | 对齐课件与验证范围，无技术栈迁移 | 可用 |
 | 当前change/specs/ai-code-review-workflow/spec.md | R1-R4、S01-S05均可观测 | 可用 |
 | 当前change/tasks.md | 实施与验证分组，未完成不勾选 | 可用 |
+| openspec/specs/ai-code-review-workflow/spec.md | 由归档同步R1-R4，正文与已审核delta一致 | 可用 |
 
 ## 高风险三项记录
 
@@ -58,6 +59,6 @@
 ## 实际检查与交付状态
 
 - 本地链接、README边界、评审表结构和既定项目目标核对通过；git diff --check、OpenSpec全量strict、静态/历史秘密检查与make check均实际退出0。make check包含配置测试、Go race/vet、前端测试/构建及报告回归。纯文档未单独重跑本机停库验收，GitHub既有check/grade仍作为合并门禁。
-- GitHub：推送前已向用户说明要更新什么、为什么；PR与CI链接在本次交付回复中给出，未通过前不写已合并。
+- GitHub：推送前已向用户说明更新内容和原因；PR https://github.com/Hilarious12138/campusclaw-plus/pull/5 。实施提交f74e0bd的check/grade已实际通过：https://github.com/Hilarious12138/campusclaw-plus/actions/runs/41625620378 。本次归档后继续由相同门禁验证，未通过最终门禁前不称已合并。
 - 修订：原稿偏目录与实现细节，改为成果→原因→阶段风险→审核交付；review规则增加与docs模板的关联。未编造业务缺陷修复或人类评审意见。
 - 人工逐段审阅：未完成；独立同学交叉评审：未完成；单人课程适配：待教师确认。当前记录不满足课件全部人工流程。

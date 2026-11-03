@@ -11,4 +11,4 @@
 ## 3. 验证交付
 
 - [x] 3.1 strict、链接/内容检查与make check；verify：实际退出0，失败先记录不当通过。
-- [ ] 3.2 更新GitHub、PR门禁、归档；verify：推送前已告知改动原因，check/grade通过后再称合并；人类peer review不虚构。
+- [x] 3.2 更新GitHub、PR门禁、归档；verify：推送前已告知改动原因，check/grade通过后再称合并；人类peer review不虚构。
