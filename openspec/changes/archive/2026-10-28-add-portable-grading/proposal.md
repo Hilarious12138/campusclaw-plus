@@ -1,6 +1,6 @@
 ## Why
 
-老师可能在Linux机器上仅用Docker部署并依据自动报告评分；原本依赖宿主Python、Node、Chrome的开发验收不满足该交付方式。
+使用者可能在Linux机器上仅用Docker部署并依据自动报告验收；原本依赖宿主Python、Node、Chrome的开发验收不满足该交付方式。
 
 ## What Changes
 
@@ -15,11 +15,11 @@
 - `portable-grading`: Linux Docker一键验收、隔离与机器可读/人可读报告。
 
 ### Modified Capabilities
-无，保留开发用make check/acceptance；新增老师入口而不是让老师安装开发环境。
+无，保留开发用make check/acceptance；新增验收者入口而不是让验收者安装开发环境。
 
 ## Non-goals
 
-不自动验收尚未实现的登录/检索/作业等学期业务，不伪造人类同伴评审；后续每项能力实现时同步扩展验收。放弃“老师安装本机Chrome/Node”：环境不一致且操作多；放弃Docker socket进容器：扩大主机控制面。
+不自动验收尚未实现的登录/检索/作业等产品业务，不伪造人类同伴评审；后续每项能力实现时同步扩展验收。放弃“验收者安装本机Chrome/Node”：环境不一致且操作多；放弃Docker socket进容器：扩大主机控制面。
 
 ## Impact
 

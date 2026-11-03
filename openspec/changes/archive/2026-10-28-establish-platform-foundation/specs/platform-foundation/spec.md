@@ -62,7 +62,7 @@
 系统 SHALL 每个请求生成或校验请求标识，在响应与单行JSON日志中关联；字段包含时间、级别、模块、事件、方法、路径、状态、耗时。秘密和query/body MUST 不进入日志；收到SIGTERM在配置≤10秒内排空已有请求并退出。
 
 #### Scenario: S10 Correlated sanitized log normal
-- **GIVEN** 系统运行且请求X-Request-ID=verify-lesson07
+- **GIVEN** 系统运行且请求X-Request-ID=verify-platform
 - **WHEN** GET /health
 - **THEN** 响应与请求日志均为该ID，日志可逐行解析JSON，必要字段齐备，无凭证及查询正文。
 

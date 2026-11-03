@@ -26,7 +26,7 @@ def get(path,status,code=None,request_id=None):
 print('Starting isolated Plus stack',flush=True)
 run('up','--build','-d','--wait','--wait-timeout','180')
 try:
- v,elapsed=get('/health',200,'OK','verify-lesson07');assert elapsed<=2000
+ v,elapsed=get('/health',200,'OK','verify-platform');assert elapsed<=2000
  assert v['data']['dependencies']['mysql']=='up' and v['data']['version']==values['APP_VERSION']
  assert v['data']['time'].endswith('Z')
  get('/health?class_id=other',400,'INVALID_ARGUMENT');get('/api/teachers/materials',404,'NOT_FOUND');get('/api/missing',404,'NOT_FOUND');get('/uploads/guessed.txt',404);get('/missing-page',404)
@@ -48,14 +48,14 @@ try:
   assert values[secret_key] not in logs,'secret in logs'
  parsed=[json.loads(line) for line in logs.splitlines() if line.strip()]
  request_logs=[v for v in parsed if v.get('event')=='request']
- assert any(v.get('request_id')=='verify-lesson07' for v in request_logs)
+ assert any(v.get('request_id')=='verify-platform' for v in request_logs)
  for v in request_logs:
   assert all(k in v for k in ['time','level','module','request_id','method','path','status','duration_ms'])
   assert '?' not in v['path']
  # Only nginx access records are JSON; native stderr diagnostics, if any, are not represented as request records.
  nginx=run('logs','--no-color','--no-log-prefix','web')
  nlogs=[json.loads(line) for line in nginx.splitlines() if line.startswith('{')]
- assert any(v.get('request_id')=='verify-lesson07' for v in nlogs)
+ assert any(v.get('request_id')=='verify-platform' for v in nlogs)
  for v in nlogs:
   assert all(k in v for k in ['time','level','module','event','request_id','method','path','status','duration_seconds'])
   assert '?' not in v['path']

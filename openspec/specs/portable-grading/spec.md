@@ -1,7 +1,7 @@
 # portable-grading Specification
 
 ## Purpose
-为仅准备Docker Compose的教师部署环境提供可复现自动验收，在隔离资源中覆盖当前已交付能力并生成真实可追溯的HTML与JSON报告；不得把缺失或失败的检查计为通过，不依赖宿主开发运行时。
+为仅准备Docker Compose的使用者部署环境提供可复现自动验收，在隔离资源中覆盖当前已交付能力并生成真实可追溯的HTML与JSON报告；不得把缺失或失败的检查计为通过，不依赖宿主开发运行时。
 
 ## Requirements
 

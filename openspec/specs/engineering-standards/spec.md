@@ -37,11 +37,11 @@ AI、数据和评审规范 SHALL 分别给出适用条件、操作约束、检�
 - **WHEN** 核查AI评测、数据删除副本与完成定义
 - **THEN** 能找到12条AI评测要求及拒答判据、数据副本清单与恢复目标、Done与阻断条件；未执行的业务验证明确标待验证。
 
-### Requirement: E4 Repository presentation traceability
+### Requirement: E4 Repository documentation traceability
 
-项目 SHALL 提供一份按A/B/C/D评分组织的仓库展示路线，链接规则、规约和真实证据；不得虚构Harness加载机制或当前验收成绩。
+项目 SHALL 提供README、规划、工程规范、部署与验证记录的清晰导航；不得虚构Harness加载机制或验收结果，非产品材料不作为公开入口。
 
-#### Scenario: S05 Walk through repository
-- **GIVEN** 教师打开仓库讲解稿
-- **WHEN** 沿展示顺序查看链接
-- **THEN** 能定位八份规范、AGENTS入口、Skill元数据、Scenario及历史报告；报告时间/范围限制清楚，未来业务不标通过。
+#### Scenario: S05 Navigate project records
+- **GIVEN** 维护者打开仓库README
+- **WHEN** 沿项目文档链接查看规范与验证
+- **THEN** 能定位八份规范、AGENTS入口、Skill元数据、Scenario和验证摘要；结果有时间/范围，未来业务不标通过。
