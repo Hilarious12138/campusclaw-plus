@@ -96,7 +96,7 @@
 - 四份规划先于本次文档实施；不修改GD，不实现新教学业务，不改技术栈。
 - 本次已实际通过：八规则非空/检查列、AGENTS索引、Skill name/description格式、全部本地链接、README边界、评分/课件项目覆盖、strict、静态/全历史检查、make check（退出0）。`mutation.py`退出0：反向依赖被阻断、错误放行导致指定测试失败；finally还原后静态和指定HTTP测试重新通过，`git diff -- backend frontend`为空。变异原始结果位于忽略Git的reports/mutation.json；本表和本次审核记录保留脱敏摘要。
 - 历史[teacher-report.json](teacher-report.json)/[HTML](teacher-report.html)生成于2026-10-28，source_commit写在报告中。此前骨架Linux15项通过，不等于教学业务或独立评审通过。
-- GitHub最终交付通过后给PR/CI链接；未通过前不称已合并。
+- 实施版本bb6e08c的[check/grade均成功](https://github.com/Hilarious12138/campusclaw-plus/actions/runs/41628412280)，本次[PR6](https://github.com/Hilarious12138/campusclaw-plus/pull/6)可追溯；归档后的最终版本仍须门禁通过，未通过前不称已合并。
 - 尚待补齐：本次新增规则的新Harness遵循复验、项目负责人逐段审核、同学peer或教师认可适配、业务SQL/并发/事务/一致性/AI专项实证。已写进规范和路线图；未来能力触发对应任务，不另造一套待办台账。
 
 ## 八、课堂怎么用

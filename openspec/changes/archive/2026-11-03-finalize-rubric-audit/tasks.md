@@ -11,4 +11,4 @@
 ## 3. 验证交付
 
 - [x] 3.1 链接、strict、静态、make check和变异检查；verify：V3/S05返回码与恢复结果有记录。
-- [ ] 3.2 GitHub门禁与归档交付；verify：推送前说明，check/grade实际成功后再称已合并。
+- [x] 3.2 GitHub门禁与归档交付；verify：推送前说明，check/grade实际成功后再称已合并。

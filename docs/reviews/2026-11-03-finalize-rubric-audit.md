@@ -18,6 +18,7 @@
 | 本change/design.md | 证据方式、既有工具与恢复要求明确 | 可用 |
 | 本change/specs/presentation-audit/spec.md | V1-V3和S01-S05可观测，无虚假得分 | 可用 |
 | 本change/tasks.md | 验证按实际结果勾选，发布门禁单列 | 可用 |
+| openspec/specs/presentation-audit/spec.md | 归档同步V1-V3，保持已核对的要求与Scenario | 可用 |
 
 “可用”只指AI辅助文档检查，不代表本人/同学已签字，也不代表所有骨架源文件无风险。只读查看的骨架源码没有在本次修改或重新生成，不以本记录豁免未来审核。
 
@@ -28,3 +29,5 @@
 - 变异只用既有脚本临时修改Plus，finally恢复；验证恢复后不残留实现diff，不能以失败来自网络/工具报错充当有效变异。
 - 人工逐段审核、独立同学peer、教师单人适配、新Harness遵循复验、业务专项仍待补，见核对表。模板和扫描结果不能替代这些事项。
 - GitHub推送前说明本次清单/最终稿的改动与目的；保持PR与check/grade门禁，不提前称已合并。课程完整人工流程未完成，这次文档同步不代表教师已批准例外。
+
+实施提交bb6e08c的GitHub check与grade均已实际成功：[运行41628412280](https://github.com/Hilarious12138/campusclaw-plus/actions/runs/41628412280)。[PR6](https://github.com/Hilarious12138/campusclaw-plus/pull/6)保留讨论和最终门禁；归档后仍须最终检查通过才称已合并。
