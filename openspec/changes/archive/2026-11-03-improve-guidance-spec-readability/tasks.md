@@ -11,4 +11,4 @@
 ## 3. 验证交付
 
 - [x] 3.1 strict、静态与make check；verify：实际通过后记录，独立人类评审不冒充。
-- [ ] 3.2 提交前告知改动，同步GitHub并归档；verify：原check/grade门禁通过，不提前称已合并。
+- [x] 3.2 提交前告知改动，同步GitHub并归档；verify：原check/grade门禁通过，不提前称已合并。
