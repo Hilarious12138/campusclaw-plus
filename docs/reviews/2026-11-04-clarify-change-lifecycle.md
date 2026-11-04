@@ -20,4 +20,4 @@
 | E5/S06 | 人工逐项核对导航顺序与两个相对链接；各阶段具备 |
 | E5/S07 | 文档检查独立人类评审未完成措辞、不改变合并要求 |
 
-本机git diff --check、python3 scripts/check.py、openspec validate --all --strict与make check实际退出0；CI结果待PR检查。独立人类交叉评审未完成；当前沿用既有单人PR与CI设置，不声称等价。无业务和依赖变动，不另加运行测试，PR现有CI照常验证。
+本机git diff --check、python3 scripts/check.py、openspec validate --all --strict与make check实际退出0；实施提交d26e09a的Linux check/grade均成功，证据：https://github.com/Hilarious12138/campusclaw-plus/actions/runs/41763621452 。归档仅移动本次规划文档并更新完成记录，最终提交仍须通过PR门禁。独立人类交叉评审未完成；当前沿用既有单人PR与CI设置，不声称等价。无业务和依赖变动，不另加运行测试，PR现有CI照常验证。

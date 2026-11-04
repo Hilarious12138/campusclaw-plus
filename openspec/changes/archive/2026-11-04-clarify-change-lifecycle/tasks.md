@@ -4,4 +4,6 @@
 
 ## 2. 验证
 - [x] 2.1 执行diff、静态、strict与make check；verify：实际退出0。
-- [ ] 2.2 验证通过后归档并同步GitHub；verify：PR现有check/grade与归档规约通过，保留真实限制。
+- [x] 2.2 验证通过后归档并同步GitHub；verify：PR现有check/grade与归档规约通过，保留真实限制。
+
+实施提交d26e09a的check/grade已通过并同步至PR10；最终归档提交的门禁与合并属于后续交付动作，不预记成功。
