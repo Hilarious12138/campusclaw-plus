@@ -2527,7 +2527,7 @@
             }
           },
           "409": {
-            "description": "CONFLICT",
+            "description": "IDEMPOTENCY_CONFLICT",
             "content": {
               "application/json": {
                 "schema": {
@@ -2537,7 +2537,7 @@
             }
           },
           "429": {
-            "description": "RATE_LIMITED",
+            "description": "TASK_CAPACITY_EXCEEDED",
             "content": {
               "application/json": {
                 "schema": {

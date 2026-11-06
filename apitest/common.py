@@ -16,7 +16,7 @@ class API:
   except Exception:preview={}
   self.trace.append({'method':method,'path':path.split('?')[0],'expected_http':status,'actual_http':r.status,'code':preview.get('code'),'request_id':preview.get('request_id'),'has_data':'data' in preview,'actor':next((name for name,value in self.tokens.items() if value==token),'anonymous')})
   assert r.status==status,(method,path,r.status,status)
-  out=json.loads(payload);assert out['request_id'];assert r.headers['X-Request-ID']==out['request_id']
+  out=json.loads(payload);expected_code={200:'OK',202:'ACCEPTED',400:'INVALID_ARGUMENT',401:'UNAUTHENTICATED',403:'FORBIDDEN',404:'NOT_FOUND',409:'CONFLICT',429:'RATE_LIMITED',503:'DEPENDENCY_UNAVAILABLE'}.get(status);assert out['code']==expected_code,(path,out['code'],expected_code);assert out['request_id'];assert r.headers['X-Request-ID']==out['request_id']
   if status>=400:assert 'data' not in out
   assert all(v.encode() not in payload for v in self.passwords.values())
   return out
@@ -41,6 +41,7 @@ class API:
   try:r=urllib.request.urlopen(req,timeout=10)
   except urllib.error.HTTPError as e:r=e
   out=json.loads(r.read());self.trace.append({'method':'POST','path':'/api/materials','expected_http':status,'actual_http':r.status,'code':out.get('code'),'request_id':out.get('request_id'),'has_data':'data' in out,'actor':next((name for name,value in self.tokens.items() if value==token),'anonymous')});assert r.status==status,(r.status,status,out.get('code'))
+  expected_code={202:'ACCEPTED',400:'INVALID_ARGUMENT',401:'UNAUTHENTICATED',403:'FORBIDDEN',409:'IDEMPOTENCY_CONFLICT',429:'TASK_CAPACITY_EXCEEDED',503:'DEPENDENCY_UNAVAILABLE'}.get(status);assert out['code']==expected_code,(out['code'],expected_code)
   if status>=400:assert 'data' not in out
   return out
  def wait_task(self,tid,token,timeout=90):

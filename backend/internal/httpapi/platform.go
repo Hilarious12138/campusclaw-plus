@@ -231,6 +231,14 @@ func (p *Platform) serve(w http.ResponseWriter, r *http.Request, id string) bool
 		}
 	}
 	status, code := statusFor(e)
+	if r.URL.Path == "/api/materials" && r.Method == "POST" {
+		if errors.Is(e, domain.ErrConflict) {
+			code = "IDEMPOTENCY_CONFLICT"
+		}
+		if errors.Is(e, domain.ErrLimited) {
+			code = "TASK_CAPACITY_EXCEEDED"
+		}
+	}
 	if e == nil && responseStatus != 0 {
 		status = responseStatus
 		if status == 202 {

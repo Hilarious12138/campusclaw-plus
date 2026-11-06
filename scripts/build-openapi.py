@@ -36,6 +36,8 @@ add('/api/mcp/servers','GET','教师查询本班MCP服务器');add('/api/mcp/ser
 for op in ['connect','disconnect']:add('/api/mcp/servers/{id}/'+op,'POST','教师'+('连接并发现工具' if op=='connect' else '断开并清缓存'))
 add('/api/mcp/servers/{id}/tools','GET','教师查询已发现工具')
 add('/api/audit-events','GET','教师查询本班操作审计',params=[{'name':k,'in':'query','schema':S} for k in ['actor_id','operation','status','from','until','limit','offset']])
+paths['/api/materials']['post']['responses']['409']['description']='IDEMPOTENCY_CONFLICT'
+paths['/api/materials']['post']['responses']['429']['description']='TASK_CAPACITY_EXCEEDED'
 spec={'openapi':'3.0.3','info':{'title':'CampusClaw Plus API','version':'0.1.0','description':'同源/api；Bearer仅内存，班级来自认证身份。跨班与不存在统一404。'},'servers':[{'url':'/'}],'paths':paths,'components':{'securitySchemes':{'BearerAuth':{'type':'http','scheme':'bearer','bearerFormat':'JWT'}},'schemas':{'Envelope':obj({'code':S,'request_id':S,'data':{},'error':obj({'message':S})},['code','request_id'])}}}
 root=Path(__file__).resolve().parents[1]
 (root/'frontend/public').mkdir(exist_ok=True);(root/'frontend/public/openapi.json').write_text(json.dumps(spec,ensure_ascii=False,indent=2)+'\n')
