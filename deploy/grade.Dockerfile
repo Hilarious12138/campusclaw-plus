@@ -5,14 +5,14 @@ FROM toolchain
 COPY --from=node /usr/local/bin/node /usr/local/bin/node
 COPY --from=node /usr/local/lib/node_modules /usr/local/lib/node_modules
 RUN ln -s ../lib/node_modules/npm/bin/npm-cli.js /usr/local/bin/npm && ln -s ../lib/node_modules/npm/bin/npx-cli.js /usr/local/bin/npx
-RUN timeout -k 15 600 apk add --no-cache chromium font-noto-cjk git python3
+RUN timeout -k 15 600 apk add --no-cache chromium font-noto-cjk git python3 mariadb-client mariadb-connector-c
 ENV PATH="/usr/local/go/bin:/go/bin:$PATH" GOPATH=/go OPENSPEC_TELEMETRY=0 GIT_OPTIONAL_LOCKS=0
 RUN npm install --global @fission-ai/openspec@1.13.0 && go install golang.org/x/vuln/cmd/govulncheck@v1.9.0
 WORKDIR /work
 COPY backend/go.mod backend/go.sum /work/backend/
 RUN cd backend && go mod download
 COPY frontend/package.json frontend/package-lock.json /work/frontend/
-RUN cd frontend && npm ci
+RUN cd frontend && SCARF_ANALYTICS=false npm ci
 COPY . /work
 RUN git config --global --add safe.directory /work
 ENTRYPOINT ["node", "/work/scripts/grader.mjs"]

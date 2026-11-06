@@ -4,9 +4,11 @@
 
 ## 项目状态
 
-已具备React前端、Go分层后端、MySQL、Nginx与Docker Compose工程基线，支持健康检查、结构化日志和隔离自动验收。
+采用React、Go分层后端、MySQL、Nginx与Docker Compose，提供教师/学生身份、本班材料、可溯源检索、可靠异步任务及操作审计。
 
-账号认证、班级知识库、多AI应用、提示词模板、Skill、MCP、作业与学情功能按[项目规划](docs/roadmap.md)分阶段交付，目前尚未实现。
+多应用、提示词、Skill、MCP与流式会话已有配置和适配代码。真实AI API接入暂缓；AI_ENABLED=false时无需填写AI地址或密钥，可使用材料与关键字检索。自动验收明确使用模型/嵌入测试替身，不能据此宣称真实模型效果或提示词安全已验证。
+
+作业评分、学情、生产备份恢复与独立人类交叉评审仍未完成，见[项目规划](docs/roadmap.md)和[验收映射](docs/verification/secure-platform-scenarios.md)。
 
 ## 部署与验收
 
@@ -16,13 +18,15 @@
 docker compose up --build -d --wait
 ```
 
-自动验收只需Docker Compose与系统sh：
+自动验收只需Docker Compose与系统sh。使用已有配置：
 
 ```sh
 sh scripts/grade.sh
 ```
 
-验收创建独立环境，执行检查后清理测试容器与卷，保留`reports/acceptance-*/report.html`和`report.json`。报告包含逐项判据、结果与截图；必测失败、未执行或清理失败均返回非零退出码。当前覆盖平台基础能力，后续业务随变更扩展。
+无须填写AI配置的隔离测试可直接运行`sh scripts/integration.sh`，自动生成临时测试配置并在结束时删除。
+
+验收创建独立环境，执行检查后清理测试容器与卷，保留`reports/acceptance-*/report.html`和`report.json`。报告包含逐项判据、结果与截图；必测失败、未执行或清理失败均返回非零退出码。覆盖工程、业务安全、真实队列故障与浏览器检查；报告明确标注替身与未验证范围。
 
 ## 项目结构
 
@@ -40,3 +44,7 @@ sh scripts/grade.sh
 - [项目规划](docs/roadmap.md)
 - [评审模板](docs/reviews/template.md)
 - [验证记录](docs/verification/platform-foundation.md)
+
+安全检查入口：`make check-security`。秘密扫描或漏洞失败、公告不可达最终重试失败均阻断；原始结果与前后对照保存在`reports/`。
+
+最近机制验收：受验代码`717c14c5`，22项通过（模型/嵌入为测试替身）。[验收摘要](docs/verification/secure-platform-result.json)与[安全基线](reports/security-baseline.md)列出范围；真实AI实验、独立人类评审和异机复验尚未完成，变更继续开放。

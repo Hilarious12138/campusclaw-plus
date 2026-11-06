@@ -9,7 +9,10 @@ import (
 	"time"
 )
 
-type MySQL struct{ db *sql.DB }
+type MySQL struct {
+	db                                                 *sql.DB
+	TaskLeaseSeconds, TaskMaxAttempts, TaskRetryBaseMS int
+}
 
 func Open(addr, name, user, password string, timeout time.Duration) (*MySQL, error) {
 	cfg := mysql.NewConfig()
@@ -19,6 +22,8 @@ func Open(addr, name, user, password string, timeout time.Duration) (*MySQL, err
 	cfg.Net = "tcp"
 	cfg.Addr = addr
 	cfg.DBName = name
+	cfg.ParseTime = true
+	cfg.Loc = time.UTC
 	cfg.Timeout = timeout
 	cfg.ReadTimeout = timeout
 	cfg.WriteTimeout = timeout
@@ -30,7 +35,7 @@ func Open(addr, name, user, password string, timeout time.Duration) (*MySQL, err
 	db.SetMaxOpenConns(5)
 	db.SetMaxIdleConns(2)
 	db.SetConnMaxLifetime(3 * time.Minute)
-	return &MySQL{db}, nil
+	return &MySQL{db: db, TaskLeaseSeconds: 150, TaskMaxAttempts: 3, TaskRetryBaseMS: 5000}, nil
 }
 func (m *MySQL) Ping(ctx context.Context) error { return m.db.PingContext(ctx) }
 func (m *MySQL) Close() error                   { return m.db.Close() }

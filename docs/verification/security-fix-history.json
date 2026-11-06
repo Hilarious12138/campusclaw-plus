@@ -1,0 +1,17 @@
+{
+  "date": "2026-11-07",
+  "scope": "isolated candidate working tree; no fabricated red commit",
+  "dependency": "github.com/rabbitmq/amqp091-go",
+  "from_version": "v1.10.0",
+  "to_version": "v1.16.0",
+  "before_reachable_findings": 10,
+  "after_reachable_findings": 0,
+  "before_command": "DOCKER_BIN=<docker> sh scripts/audit.sh",
+  "before_result": "nonzero; govulncheck program reported exit status 3 through go run",
+  "after_result": "exit 0; verbose scan No vulnerabilities found",
+  "source_log_sha256": {
+    "audit-retry.log": "eacbd3d93365717f3eeac74ef12cabcfd60fecc7b5a1a4395625cceb9bdcc840",
+    "audit-final-deps.log": "5b239277ceab7e3876a4a71081caca10d97dae63abe55662dd024fdeb114ebeb"
+  },
+  "other_fix": "x/crypto uncalled openpgp advisory removed by fixed pseudo-version; not falsely counted as reachable"
+}

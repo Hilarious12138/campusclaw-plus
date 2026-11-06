@@ -20,7 +20,33 @@ services:
     restart: unless-stopped
   api:
     build: {context: ., dockerfile: deploy/api.Dockerfile}
-    environment:
+    environment: &platform-env
+      AI_ENABLED: ${AI_ENABLED:?fill AI_ENABLED}
+      EMBEDDING_TIMEOUT_SECONDS: ${EMBEDDING_TIMEOUT_SECONDS:-}
+      CHAT_BASE_URL: ${CHAT_BASE_URL:-}
+      CHAT_API_KEY: ${CHAT_API_KEY:-}
+      CHAT_MODEL: ${CHAT_MODEL:-}
+      MCP_AUTH_TOKEN: ${MCP_AUTH_TOKEN:?fill MCP_AUTH_TOKEN}
+      MCP_ALLOWED_BASE_URLS: ${MCP_ALLOWED_BASE_URLS:?fill MCP_ALLOWED_BASE_URLS}
+      TASK_TIMEOUT_SECONDS: ${TASK_TIMEOUT_SECONDS:?fill TASK_TIMEOUT_SECONDS}
+      TASK_LEASE_SECONDS: ${TASK_LEASE_SECONDS:?fill TASK_LEASE_SECONDS}
+      TASK_MAX_ATTEMPTS: ${TASK_MAX_ATTEMPTS:?fill TASK_MAX_ATTEMPTS}
+      TASK_RETRY_BASE_MS: ${TASK_RETRY_BASE_MS:?fill TASK_RETRY_BASE_MS}
+      TASK_POLL_MS: ${TASK_POLL_MS:?fill TASK_POLL_MS}
+      BROKER_ADDR: ${BROKER_ADDR:?fill BROKER_ADDR}
+      BROKER_USER: ${BROKER_USER:?fill BROKER_USER}
+      BROKER_PASSWORD: ${BROKER_PASSWORD:?fill BROKER_PASSWORD}
+      EMBEDDING_BASE_URL: ${EMBEDDING_BASE_URL:-}
+      EMBEDDING_API_KEY: ${EMBEDDING_API_KEY:-}
+      EMBEDDING_MODEL: ${EMBEDDING_MODEL:-}
+      EMBEDDING_DIM: ${EMBEDDING_DIM:-}
+      QDRANT_URL: ${QDRANT_URL:?fill QDRANT_URL}
+      JWT_SECRET: ${JWT_SECRET:?fill JWT_SECRET}
+      APP_ORIGIN: ${APP_ORIGIN:?fill APP_ORIGIN}
+      SEED_TEACHER_A_PASSWORD: ${SEED_TEACHER_A_PASSWORD:?fill SEED_TEACHER_A_PASSWORD}
+      SEED_STUDENT_A_PASSWORD: ${SEED_STUDENT_A_PASSWORD:?fill SEED_STUDENT_A_PASSWORD}
+      SEED_TEACHER_B_PASSWORD: ${SEED_TEACHER_B_PASSWORD:?fill SEED_TEACHER_B_PASSWORD}
+      SEED_STUDENT_B_PASSWORD: ${SEED_STUDENT_B_PASSWORD:?fill SEED_STUDENT_B_PASSWORD}
       APP_ENV: ${APP_ENV:?fill APP_ENV}
       APP_VERSION: ${APP_VERSION:?fill APP_VERSION}
       HTTP_ADDR: ${HTTP_ADDR:?fill HTTP_ADDR}
@@ -39,6 +65,62 @@ services:
       retries: 10
     stop_grace_period: 12s
     restart: unless-stopped
+  broker:
+    image: rabbitmq:4.2-management-alpine@sha256:77ca2ba3621a95208918e6e331199a6c81129690bf7fc570dc61b6e64726840a
+    environment:
+      RABBITMQ_DEFAULT_USER: ${BROKER_USER:?fill BROKER_USER}
+      RABBITMQ_DEFAULT_PASS: ${BROKER_PASSWORD:?fill BROKER_PASSWORD}
+    volumes:
+      - broker-data:/var/lib/rabbitmq
+      - ./deploy/rabbitmq.conf:/etc/rabbitmq/rabbitmq.conf:ro
+    healthcheck:
+      test: [CMD, rabbitmq-diagnostics, -q, ping]
+      interval: 5s
+      timeout: 5s
+      retries: 30
+    restart: unless-stopped
+  qdrant:
+    image: qdrant/qdrant:v1.16.2@sha256:dab6de32f7b2cc599985a7c764db3e8b062f70508fb85ca074aa856f829bf335
+    volumes: [vector-data:/qdrant/storage]
+    restart: unless-stopped
+  dispatcher:
+    build: {context: ., dockerfile: deploy/api.Dockerfile}
+    entrypoint: [/usr/local/bin/campusclaw-job, dispatcher]
+    environment:
+      <<: *platform-env
+      JOB_HEALTH_ADDR: :8092
+    healthcheck:
+      test: [CMD, /usr/local/bin/campusclaw-job, healthcheck]
+      interval: 3s
+      timeout: 4s
+      retries: 20
+    depends_on:
+      api: {condition: service_healthy}
+      broker: {condition: service_healthy}
+    stop_grace_period: 12s
+    restart: unless-stopped
+  worker:
+    build: {context: ., dockerfile: deploy/api.Dockerfile}
+    entrypoint: [/usr/local/bin/campusclaw-job, worker]
+    environment:
+      <<: *platform-env
+      JOB_HEALTH_ADDR: :8092
+    healthcheck:
+      test: [CMD, /usr/local/bin/campusclaw-job, healthcheck]
+      interval: 3s
+      timeout: 4s
+      retries: 20
+    depends_on:
+      api: {condition: service_healthy}
+      broker: {condition: service_healthy}
+    stop_grace_period: 12s
+    restart: unless-stopped
+  mcp-demo:
+    build: {context: ., dockerfile: deploy/api.Dockerfile}
+    entrypoint: [/usr/local/bin/campusclaw-mcp]
+    environment:
+      MCP_AUTH_TOKEN: ${MCP_AUTH_TOKEN:?fill MCP_AUTH_TOKEN}
+    restart: unless-stopped
   web:
     build: {context: ., dockerfile: deploy/web.Dockerfile}
     ports: ['127.0.0.1:${WEB_PORT:?fill WEB_PORT}:80']
@@ -52,3 +134,5 @@ services:
     restart: unless-stopped
 volumes:
   mysql-data:
+  broker-data:
+  vector-data:

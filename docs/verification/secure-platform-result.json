@@ -1,0 +1,139 @@
+{
+  "source_commit": "717c14c569c67b8e02426a995159de0ee5f5d7c3",
+  "source_dirty": false,
+  "created_at": "2026-11-06T16:39:47.987Z",
+  "environment": {
+    "os": "linux",
+    "arch": "arm64",
+    "node": "v24.21.0",
+    "browser": "Linux Chromium in Docker"
+  },
+  "scope": "Platform foundation, class-scoped business/security and async; embedding/chat are explicit fixtures, MCP/DB/broker/browser are real",
+  "status": "passed",
+  "counts": {
+    "passed": 22,
+    "failed": 0,
+    "blocked": 0
+  },
+  "not_applicable": [
+    "真实外部模型/嵌入未配置验证，测试使用明确fixture；作业评分未实现，不能声称通过评分安全实验",
+    "独立人类同伴评审，不能由自动报告替代"
+  ],
+  "raw_report_sha256": "211ec822b83da83f30fe179f92fb450ae025ea7f9826eea8f95afe209e23fb62",
+  "checks": [
+    {
+      "id": "C01",
+      "name": "规则、配置样例和全部Git历史扫描",
+      "status": "passed"
+    },
+    {
+      "id": "C02",
+      "name": "数据库根密码与普通密码边界",
+      "status": "passed"
+    },
+    {
+      "id": "C03",
+      "name": "Go格式、race测试与vet",
+      "status": "passed"
+    },
+    {
+      "id": "C04",
+      "name": "前端四态测试、类型和构建",
+      "status": "passed"
+    },
+    {
+      "id": "C05",
+      "name": "OpenSpec strict",
+      "status": "passed"
+    },
+    {
+      "id": "C06",
+      "name": "全部npm依赖漏洞审计",
+      "status": "passed"
+    },
+    {
+      "id": "C08",
+      "name": "报告失败与缺证据判定",
+      "status": "passed"
+    },
+    {
+      "id": "C07",
+      "name": "Go可达漏洞审计",
+      "status": "passed"
+    },
+    {
+      "id": "R01",
+      "name": "匿名健康与配置版本",
+      "status": "passed"
+    },
+    {
+      "id": "R02",
+      "name": "非法参数、未知资源及无权限暴露",
+      "status": "passed"
+    },
+    {
+      "id": "R03",
+      "name": "容器内Chromium响应式与四态",
+      "status": "passed"
+    },
+    {
+      "id": "B01",
+      "name": "业务接口与数据库一致性",
+      "status": "passed"
+    },
+    {
+      "id": "B02",
+      "name": "真实浏览器业务与XSS",
+      "status": "passed"
+    },
+    {
+      "id": "B03",
+      "name": "安全扫描红绿证据",
+      "status": "passed"
+    },
+    {
+      "id": "B04",
+      "name": "并发与旧租约隔离",
+      "status": "passed"
+    },
+    {
+      "id": "A03",
+      "name": "重试分类与死信",
+      "status": "passed"
+    },
+    {
+      "id": "A02",
+      "name": "broker故障后可靠发件箱补投",
+      "status": "passed"
+    },
+    {
+      "id": "A01",
+      "name": "异步三判据与重复投递",
+      "status": "passed"
+    },
+    {
+      "id": "R04",
+      "name": "真实数据库不可达",
+      "status": "passed"
+    },
+    {
+      "id": "R05",
+      "name": "数据库恢复",
+      "status": "passed"
+    },
+    {
+      "id": "R06",
+      "name": "请求JSON日志与脱敏",
+      "status": "passed"
+    },
+    {
+      "id": "R07",
+      "name": "真实优雅退出",
+      "status": "passed"
+    }
+  ],
+  "async_p95_ms": {
+    "10000": 12.84929200028273,
+    "30000": 3.464999999778229
+  }
+}
