@@ -46,3 +46,5 @@ sh scripts/grade.sh
 - [验证记录](docs/verification/platform-foundation.md)
 
 安全检查入口：`make check-security`。秘密扫描或漏洞失败、公告不可达最终重试失败均阻断；原始结果与前后对照保存在`reports/`。
+
+最近机制验收：受验代码`717c14c5`，22项通过（模型/嵌入为测试替身）。[验收摘要](docs/verification/secure-platform-result.json)与[安全基线](reports/security-baseline.md)列出范围；真实AI实验、独立人类评审和异机复验尚未完成，变更继续开放。
