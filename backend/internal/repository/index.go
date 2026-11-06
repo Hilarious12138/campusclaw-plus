@@ -21,8 +21,12 @@ type Index struct {
 	Client                                                *http.Client
 }
 
-func InternalClient() *http.Client {
-	return &http.Client{Timeout: 30 * time.Second, Transport: &http.Transport{Proxy: nil, ResponseHeaderTimeout: 30 * time.Second}, CheckRedirect: func(*http.Request, []*http.Request) error { return http.ErrUseLastResponse }}
+func InternalClient(override ...time.Duration) *http.Client {
+	timeout := 30 * time.Second
+	if len(override) > 0 {
+		timeout = override[0]
+	}
+	return &http.Client{Timeout: timeout, Transport: &http.Transport{Proxy: nil, ResponseHeaderTimeout: timeout}, CheckRedirect: func(*http.Request, []*http.Request) error { return http.ErrUseLastResponse }}
 }
 func validBase(s string) bool {
 	u, e := url.Parse(s)

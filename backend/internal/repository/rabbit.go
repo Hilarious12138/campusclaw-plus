@@ -119,6 +119,12 @@ func (r *Rabbit) Consume(ctx context.Context, handle func(context.Context, strin
 				continue
 			}
 			e = handle(ctx, v.TaskID)
+			if errors.Is(e, domain.ErrAlreadyHandled) {
+				if e = d.Ack(false); e != nil {
+					return e
+				}
+				continue
+			}
 			if ctx.Err() != nil {
 				return nil
 			}

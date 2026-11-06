@@ -114,7 +114,7 @@ func chunkID(mid, version string, index int) string {
 func (r Runner) Execute(ctx context.Context, id string) error {
 	t, m, e := r.Store.ClaimTask(ctx, id, r.Owner)
 	if errors.Is(e, domain.ErrConflict) || errors.Is(e, domain.ErrNotFound) {
-		return nil
+		return domain.ErrAlreadyHandled
 	}
 	if e != nil {
 		if errors.Is(e, domain.ErrForbidden) && t.Status == "running" {
@@ -182,5 +182,8 @@ func (r Runner) Execute(ctx context.Context, id string) error {
 		}
 	}
 	r.Log.Info("task_finished", "event", "task_attempt", "module", "worker", "request_id", id, "task_id", id, "attempts", t.Attempts, "duration_ms", time.Since(start).Milliseconds(), "failed", e != nil)
+	if e != nil {
+		return domain.ErrAlreadyHandled
+	}
 	return nil
 }

@@ -2,7 +2,7 @@ import json,os,subprocess,urllib.request,urllib.error
 from pathlib import Path
 class API:
  def __init__(self):
-  self.base=os.environ.get('BASE_URL','http://127.0.0.1:3011');self.passwords={name:os.environ['SEED_'+name.upper()+'_PASSWORD'] for name in ['teacher_a','student_a','teacher_b','student_b']};self.password=self.passwords['teacher_a'];self.tokens={}
+  self.base=os.environ.get('BASE_URL','http://127.0.0.1:3011');self.passwords={name:os.environ['SEED_'+name.upper()+'_PASSWORD'] for name in ['teacher_a','student_a','teacher_b','student_b']};self.password=self.passwords['teacher_a'];self.tokens={};self.trace=[]
  def request(self,method,path,body=None,token=None,status=200,headers=None):
   h={'Content-Type':'application/json'}
   if token:h['Authorization']='Bearer '+token
@@ -11,7 +11,11 @@ class API:
   req=urllib.request.Request(self.base+path,data=raw,headers=h,method=method)
   try:r=urllib.request.urlopen(req,timeout=10)
   except urllib.error.HTTPError as e:r=e
-  payload=r.read();assert r.status==status,(method,path,r.status,status)
+  payload=r.read();
+  try:preview=json.loads(payload)
+  except Exception:preview={}
+  self.trace.append({'method':method,'path':path.split('?')[0],'expected_http':status,'actual_http':r.status,'code':preview.get('code'),'request_id':preview.get('request_id'),'has_data':'data' in preview,'actor':next((name for name,value in self.tokens.items() if value==token),'anonymous')})
+  assert r.status==status,(method,path,r.status,status)
   out=json.loads(payload);assert out['request_id'];assert r.headers['X-Request-ID']==out['request_id']
   if status>=400:assert 'data' not in out
   assert all(v.encode() not in payload for v in self.passwords.values())
@@ -36,7 +40,7 @@ class API:
   req=urllib.request.Request(self.base+'/api/materials',data=raw,headers={'Content-Type':'multipart/form-data; boundary='+boundary,'Authorization':'Bearer '+token,'Idempotency-Key':key},method='POST')
   try:r=urllib.request.urlopen(req,timeout=10)
   except urllib.error.HTTPError as e:r=e
-  out=json.loads(r.read());assert r.status==status,(r.status,status,out.get('code'))
+  out=json.loads(r.read());self.trace.append({'method':'POST','path':'/api/materials','expected_http':status,'actual_http':r.status,'code':out.get('code'),'request_id':out.get('request_id'),'has_data':'data' in out,'actor':next((name for name,value in self.tokens.items() if value==token),'anonymous')});assert r.status==status,(r.status,status,out.get('code'))
   if status>=400:assert 'data' not in out
   return out
  def wait_task(self,tid,token,timeout=90):

@@ -9,7 +9,7 @@ http.createServer(async(req,res)=>{let raw='';for await(const b of req){raw+=b;i
  if(req.url==='/control'&&req.method==='POST'){delay=Number(b.delay||0);mode=b.mode||'ok';json(200,{fixture:true});return;}
  if(req.url==='/metrics'){json(200,{fixture:true,calls,chatCalls,lastChat});return;}
  if(req.headers.authorization!=='Bearer '+process.env.FIXTURE_API_KEY){json(401,{error:'unauthorized fixture'});return;}
- if(req.url==='/v1/embeddings'){calls++;await new Promise(r=>setTimeout(r,delay));if(mode==='fail'){json(429,{error:'controlled fixture failure'});return;}json(200,{data:b.input.map((s,index)=>({index,embedding:embedding(s)}))});return;}
+ if(req.url==='/v1/embeddings'){calls++;await new Promise(r=>setTimeout(r,delay));if(mode==='permanent'){json(401,{error:'controlled fixture credential error'});return;}if(mode==='fail'){json(429,{error:'controlled fixture failure'});return;}json(200,{data:b.input.map((s,index)=>({index,embedding:embedding(s)}))});return;}
  if(req.url==='/v1/chat/completions'){chatCalls++;lastChat=b;res.writeHead(200,{'Content-Type':'text/event-stream'});for(const s of ['请先确认已知条件，','再检查下一步的依据。','[1]']){res.write('data: '+JSON.stringify({choices:[{delta:{content:s}}]})+'\n\n');await new Promise(r=>setTimeout(r,30));}res.end('data: [DONE]\n\n');return;}
  json(404,{error:'fixture path not found'});
 }).listen(8091,'0.0.0.0');

@@ -8,6 +8,7 @@ import (
 	"net/http/httptest"
 	"strings"
 	"testing"
+	"time"
 )
 
 func TestEmbeddingShapeAndBoundary(t *testing.T) {
@@ -62,5 +63,12 @@ func TestQdrantDoesNotContainTextAndFiltersBothScopes(t *testing.T) {
 	}
 	if !strings.Contains(string(raw), "class_id") || !strings.Contains(string(raw), "material_id") {
 		t.Fatal("missing scope filters")
+	}
+}
+func TestConfiguredTimeoutCoversResponseHeaders(t *testing.T) {
+	c := InternalClient(35 * time.Second)
+	transport := c.Transport.(*http.Transport)
+	if c.Timeout != 35*time.Second || transport.ResponseHeaderTimeout != c.Timeout {
+		t.Fatal("header timeout silently kept shorter than configured embedding deadline")
 	}
 }

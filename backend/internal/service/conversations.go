@@ -149,7 +149,12 @@ func (s Conversations) Send(ctx context.Context, u domain.Identity, id, question
 			if ce == nil && now.Revision == srv.Revision {
 				var text string
 				text, te = s.Remote.Call(job, srv.BaseURL, name, toolQuestion(question))
-				if te == nil {
+				current, _, afterError := s.MCP.ToolServer(job, u, ref)
+				if te == nil && (afterError != nil || current.Revision != srv.Revision) {
+					call.Status = "denied"
+					toolEvent.HTTPStatus = 403
+					toolEvent.Outcome = "denied"
+				} else if te == nil {
 					call.Status = "ok"
 					toolEvent.HTTPStatus = 200
 					toolEvent.Outcome = "ok"

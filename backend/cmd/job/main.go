@@ -54,7 +54,7 @@ func run(log *slog.Logger) error {
 	defer cancel()
 	indexClient := repository.InternalClient()
 	if c.AIEnabled {
-		indexClient.Timeout = time.Duration(c.EmbeddingTimeoutSeconds) * time.Second
+		indexClient = repository.InternalClient(time.Duration(c.EmbeddingTimeoutSeconds) * time.Second)
 	}
 	index := &repository.Index{EmbeddingURL: c.EmbeddingURL, EmbeddingKey: c.EmbeddingKey, EmbeddingModel: c.EmbeddingModel, QdrantURL: c.QdrantURL, Dimension: c.EmbeddingDim, Client: indexClient}
 	addr := os.Getenv("JOB_HEALTH_ADDR")

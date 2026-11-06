@@ -41,6 +41,8 @@ if(phase==='checks'){
  await test('B04','并发与旧租约隔离','20并发同键只建一任务，旧worker提交被拒、新worker只生效一份',()=>{const prev=process.env.PLUS_INTEGRATION;process.env.PLUS_INTEGRATION='1';try{return cmd('go',['test','-run','TestTaskConcurrencyAndFencing','-count=1','./internal/repository'],'/work/backend',90000);}finally{if(prev===undefined)delete process.env.PLUS_INTEGRATION;else process.env.PLUS_INTEGRATION=prev;}});
  }else if(phase==='async'){
  cmd('python3',['apitest/async_cases.py'],'/work',120000);
+ }else if(phase==='resilience'){
+ await test('A03','重试分类与死信','429最多3次、401仅1次，failed与持久DLQ确认，结果表无假成功',()=>cmd('python3',['apitest/resilience_cases.py'],'/work',180000));
  }else if(phase==='broker'){cmd('python3',['apitest/broker_cases.py'],'/work',120000);
  }else if(phase==='async-summary'){
  await test('A02','broker故障后可靠发件箱补投','broker停止仍202，恢复无需再提交，最终succeeded',()=>{const v=JSON.parse(fs.readFileSync(path.join(dir,'broker-recovery.json')));assert.equal(v.status,'passed');});
@@ -53,7 +55,7 @@ if(phase==='checks'){
  await test('R06','请求JSON日志与脱敏','Go/Nginx字段完整、ID关联且无查询/秘密',()=>{for(const [f,duration] of [['api.log','duration_ms'],['web.log','duration_seconds']]){const text=fs.readFileSync(path.join(dir,f),'utf8');for(const s of secrets)assert.equal(text.includes(s),false);const lines=text.split('\n').filter(l=>l.trim());const entries=(f==='api.log'?lines:lines.filter(l=>l.startsWith('{'))).map(l=>JSON.parse(l));const requests=entries.filter(e=>e.event==='request');assert.ok(requests.some(e=>e.request_id==='acceptance-check'));for(const r of requests){for(const k of ['time','level','module','event','request_id','method','path','status',duration])assert.ok(k in r);assert.equal(r.path.includes('?'),false);}}});
  await test('R07','真实优雅退出','API停止退出0且有结构化shutdown事件；在途/预算规则由C03验证',()=>{assert.equal(process.env.API_EXIT_CODE,'0');const logs=fs.readFileSync(path.join(dir,'api.log'),'utf8');assert.ok(logs.split('\n').filter(l=>l.startsWith('{')).some(l=>JSON.parse(l).event==='shutdown'));});
 }else if(phase==='finalize'){
- const expected={checks:['C01','C02','C03','C04','C05','C06','C07','C08'],healthy:['R01','R02','R03'],business:['B01','B02','B03'],concurrency:['B04'],'async-summary':['A01','A02'],down:['R04'],recovered:['R05'],stopped:['R06','R07']};const all=[];
+ const expected={checks:['C01','C02','C03','C04','C05','C06','C07','C08'],healthy:['R01','R02','R03'],business:['B01','B02','B03'],concurrency:['B04'],resilience:['A03'],'async-summary':['A01','A02'],down:['R04'],recovered:['R05'],stopped:['R06','R07']};const all=[];
  for(const [p,ids] of Object.entries(expected)){let found=[];try{found=JSON.parse(fs.readFileSync(path.join(dir,p+'.json'),'utf8'));}catch{}if(!Array.isArray(found))found=[];all.push(...found);for(const id of ids)if(!found.some(r=>r.id===id))all.push({id,name:p+'阶段未完成',status:'blocked',criterion:'必测项必须执行，不得缺记录',elapsed_ms:0,detail:'前置构建/部署或该阶段失败，请查看infra.log和runner.log'});}
  if(process.env.HOST_FAILURE==='1'&&!all.some(r=>r.status!=='passed'))all.push({id:'INFRA',name:'宿主编排或清理失败',status:'failed',criterion:'部署及隔离清理均必须成功',elapsed_ms:0,detail:'阶段：'+(process.env.HOST_FAILURE_REASON||'unknown')+'；请查看infra.log'});
  const failure=all.some(r=>r.status!=='passed');let sha='unavailable';try{sha=cmd('git',['rev-parse','HEAD']).trim();}catch{}

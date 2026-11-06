@@ -25,8 +25,7 @@ func (m ChatModel) Stream(ctx context.Context, messages []domain.ChatMessage, em
 	}
 	r.Header.Set("Authorization", "Bearer "+m.APIKey)
 	r.Header.Set("Content-Type", "application/json")
-	client := InternalClient()
-	client.Timeout = 60 * time.Second
+	client := InternalClient(60 * time.Second)
 	res, e := client.Do(r)
 	if e != nil {
 		return errors.New("model unavailable")

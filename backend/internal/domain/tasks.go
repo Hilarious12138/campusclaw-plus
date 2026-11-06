@@ -2,8 +2,11 @@ package domain
 
 import (
 	"context"
+	"errors"
 	"time"
 )
+
+var ErrAlreadyHandled = errors.New("delivery already handled")
 
 type Material struct {
 	ID            string    `json:"id"`

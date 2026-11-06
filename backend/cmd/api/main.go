@@ -57,7 +57,7 @@ func run(logger *slog.Logger) error {
 	auth := service.Auth{Store: db, Credentials: credentials, Now: time.Now, FingerprintKey: []byte(c.JWTSecret), DummyHash: dummy}
 	indexClient := repository.InternalClient()
 	if c.AIEnabled {
-		indexClient.Timeout = time.Duration(c.EmbeddingTimeoutSeconds) * time.Second
+		indexClient = repository.InternalClient(time.Duration(c.EmbeddingTimeoutSeconds) * time.Second)
 	}
 	platform := &httpapi.Platform{AIEnabled: c.AIEnabled, Log: logger, Auth: auth, Origin: c.Origin, Resources: service.Resources{Store: db}, Materials: service.Materials{Store: db}, Retrieval: service.Retrieval{Store: db, Index: &repository.Index{EmbeddingURL: c.EmbeddingURL, EmbeddingKey: c.EmbeddingKey, EmbeddingModel: c.EmbeddingModel, Dimension: c.EmbeddingDim, QdrantURL: c.QdrantURL, Client: indexClient}}}
 	platform.MCP = service.MCP{Store: db, Remote: repository.MCPRemote{AllowedURLs: strings.Split(c.MCPAllowed, ","), Token: c.MCPToken}}
