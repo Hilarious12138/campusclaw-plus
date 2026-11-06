@@ -21,6 +21,9 @@ services:
   api:
     build: {context: ., dockerfile: deploy/api.Dockerfile}
     environment:
+      JWT_SECRET: ${JWT_SECRET:?fill JWT_SECRET}
+      APP_ORIGIN: ${APP_ORIGIN:?fill APP_ORIGIN}
+      SEED_PASSWORD: ${SEED_PASSWORD:?fill SEED_PASSWORD}
       APP_ENV: ${APP_ENV:?fill APP_ENV}
       APP_VERSION: ${APP_VERSION:?fill APP_VERSION}
       HTTP_ADDR: ${HTTP_ADDR:?fill HTTP_ADDR}

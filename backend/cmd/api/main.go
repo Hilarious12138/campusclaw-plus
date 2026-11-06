@@ -38,13 +38,26 @@ func run(logger *slog.Logger) error {
 		return fmt.Errorf("database configuration invalid")
 	}
 	defer db.Close()
+	credentials := repository.Credentials{Secret: []byte(c.JWTSecret), Now: time.Now}
+	migrationCtx, migrationCancel := context.WithTimeout(context.Background(), 30*time.Second)
+	e = db.Migrate(migrationCtx, credentials, c.SeedPassword)
+	migrationCancel()
+	if e != nil {
+		return fmt.Errorf("platform migration failed")
+	}
+	dummy, e := credentials.Hash(repository.NewID())
+	if e != nil {
+		return fmt.Errorf("credential initialization failed")
+	}
+	auth := service.Auth{Store: db, Credentials: credentials, Now: time.Now, FingerprintKey: []byte(c.JWTSecret), DummyHash: dummy}
+	platform := &httpapi.Platform{Auth: auth, Origin: c.Origin, Resources: service.Resources{Store: db}}
 	listener, e := net.Listen("tcp", c.HTTPAddr)
 	if e != nil {
 		return fmt.Errorf("HTTP listener unavailable")
 	}
 	ctx, cancel := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
 	defer cancel()
-	s := &http.Server{Handler: httpapi.Handler(service.Health{DB: db, Version: c.Version, Timeout: c.DBTimeout, Now: time.Now}, logger), ReadHeaderTimeout: 5 * time.Second, IdleTimeout: 30 * time.Second, MaxHeaderBytes: 16 << 10}
+	s := &http.Server{Handler: httpapi.Handler(service.Health{DB: db, Version: c.Version, Timeout: c.DBTimeout, Now: time.Now}, logger, platform), ReadHeaderTimeout: 5 * time.Second, IdleTimeout: 30 * time.Second, MaxHeaderBytes: 16 << 10}
 	logger.Info("started", "event", "startup", "version", c.Version)
 	e = lifecycle.Serve(ctx, s, listener, c.ShutdownTimeout)
 	logger.Info("stopped", "event", "shutdown")

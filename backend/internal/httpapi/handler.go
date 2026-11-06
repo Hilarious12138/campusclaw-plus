@@ -28,7 +28,7 @@ type response struct {
 }
 
 func (w *response) WriteHeader(n int) { w.status = n; w.ResponseWriter.WriteHeader(n) }
-func Handler(s service.Health, logger *slog.Logger) http.Handler {
+func Handler(s service.Health, logger *slog.Logger, platform ...*Platform) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		start := time.Now()
 		id := r.Header.Get("X-Request-ID")
@@ -52,6 +52,9 @@ func Handler(s service.Health, logger *slog.Logger) http.Handler {
 			}
 			rw.WriteHeader(status)
 			_ = json.NewEncoder(rw).Encode(v)
+		}
+		if len(platform) > 0 && platform[0].serve(rw, r, id) {
+			return
 		}
 		if r.URL.Path != "/health" && r.URL.Path != "/live" {
 			reply(404, "NOT_FOUND", "资源不存在或未开放，请检查访问路径。", nil)

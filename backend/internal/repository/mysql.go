@@ -19,6 +19,8 @@ func Open(addr, name, user, password string, timeout time.Duration) (*MySQL, err
 	cfg.Net = "tcp"
 	cfg.Addr = addr
 	cfg.DBName = name
+	cfg.ParseTime = true
+	cfg.Loc = time.UTC
 	cfg.Timeout = timeout
 	cfg.ReadTimeout = timeout
 	cfg.WriteTimeout = timeout

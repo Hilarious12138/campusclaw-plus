@@ -1,0 +1,7 @@
+CREATE TABLE IF NOT EXISTS schema_migrations(version VARCHAR(64) PRIMARY KEY, applied_at DATETIME(6) NOT NULL);
+CREATE TABLE IF NOT EXISTS classes(id CHAR(32) PRIMARY KEY, name VARCHAR(100) NOT NULL);
+CREATE TABLE IF NOT EXISTS users(id CHAR(32) PRIMARY KEY, username VARCHAR(100) UNIQUE NOT NULL, password_hash VARCHAR(255) NOT NULL, role ENUM('teacher','student') NOT NULL, class_id CHAR(32) NOT NULL, active BOOLEAN NOT NULL DEFAULT TRUE, created_at DATETIME(6) NOT NULL, FOREIGN KEY(class_id) REFERENCES classes(id));
+CREATE TABLE IF NOT EXISTS revoked_tokens(jti CHAR(32) PRIMARY KEY, expires_at DATETIME(6) NOT NULL, INDEX(expires_at));
+CREATE TABLE IF NOT EXISTS audit_events(id CHAR(32) PRIMARY KEY, class_id CHAR(32) NULL, actor_id CHAR(32) NULL, occurred_at DATETIME(6) NOT NULL, operation VARCHAR(128) NOT NULL, http_status INT NOT NULL, event JSON NOT NULL, INDEX(class_id,occurred_at,id), INDEX(class_id,actor_id,occurred_at,id));
+CREATE TABLE IF NOT EXISTS login_failures(fingerprint CHAR(64) PRIMARY KEY, failures INT NOT NULL, window_start DATETIME(6) NOT NULL);
+CREATE TABLE IF NOT EXISTS resources(id CHAR(32) PRIMARY KEY, class_id CHAR(32) NOT NULL, created_by CHAR(32) NOT NULL, kind VARCHAR(32) NOT NULL, revision INT NOT NULL, body JSON NOT NULL, created_at DATETIME(6) NOT NULL, updated_at DATETIME(6) NOT NULL, INDEX(class_id,kind,id), FOREIGN KEY(class_id) REFERENCES classes(id));
