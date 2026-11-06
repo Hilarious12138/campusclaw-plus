@@ -4,6 +4,7 @@ import (
 	"campusclaw-plus/internal/domain"
 	"context"
 	"database/sql"
+	"encoding/json"
 	"errors"
 )
 
@@ -46,6 +47,49 @@ func (m *MySQL) SaveResource(ctx context.Context, u domain.Identity, v domain.Re
 		return v, e
 	}
 	defer tx.Rollback()
+	if v.Kind == "skills" {
+		var skill struct {
+			Tools []string `json:"tools"`
+		}
+		if json.Unmarshal(v.Body, &skill) != nil {
+			return v, domain.ErrInvalid
+		}
+		if len(skill.Tools) > 2 {
+			return v, domain.ErrInvalid
+		}
+		for _, ref := range skill.Tools {
+			if ref != "knowledge_search" {
+				if _, _, e = toolServer(ctx, tx, u, ref, true); e != nil {
+					return v, domain.ErrForbidden
+				}
+			}
+		}
+	}
+	if v.Kind == "agents" {
+		var agent struct {
+			SkillIDs    []string `json:"skill_ids"`
+			MaterialIDs []string `json:"material_ids"`
+		}
+		json.Unmarshal(v.Body, &agent)
+		for _, id := range agent.SkillIDs {
+			var n int
+			if e = tx.QueryRowContext(ctx, "SELECT COUNT(*) FROM resources WHERE id=? AND class_id=? AND kind='skills'", id, u.ClassID).Scan(&n); e != nil {
+				return v, e
+			}
+			if n != 1 {
+				return v, domain.ErrNotFound
+			}
+		}
+		for _, id := range agent.MaterialIDs {
+			var n int
+			if e = tx.QueryRowContext(ctx, "SELECT COUNT(*) FROM materials WHERE id=? AND class_id=?", id, u.ClassID).Scan(&n); e != nil {
+				return v, e
+			}
+			if n != 1 {
+				return v, domain.ErrNotFound
+			}
+		}
+	}
 	if v.ID == "" {
 		v.ID = NewID()
 		_, e = tx.ExecContext(ctx, "INSERT INTO resources(id,class_id,created_by,kind,revision,body,created_at,updated_at) VALUES(?,?,?,?,1,?,UTC_TIMESTAMP(6),UTC_TIMESTAMP(6))", v.ID, u.ClassID, u.ID, v.Kind, []byte(v.Body))

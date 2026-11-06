@@ -3,9 +3,11 @@ WORKDIR /src
 COPY backend/go.mod backend/go.sum ./
 RUN go mod download
 COPY backend/ ./
-RUN CGO_ENABLED=0 go build -trimpath -ldflags='-s -w' -o /app ./cmd/api
+RUN CGO_ENABLED=0 go build -trimpath -ldflags='-s -w' -o /app ./cmd/api && CGO_ENABLED=0 go build -trimpath -o /job ./cmd/job && CGO_ENABLED=0 go build -trimpath -o /mcp ./cmd/mcp-server
 FROM alpine:3.22@sha256:5291449c3df73caf6ed85e649dec1b9e818b39a5d8c871e97afc13e9cd5e8fa8
 RUN addgroup -S app && adduser -S app -G app
 COPY --from=build /app /usr/local/bin/campusclaw-plus
+COPY --from=build /job /usr/local/bin/campusclaw-job
+COPY --from=build /mcp /usr/local/bin/campusclaw-mcp
 USER app
 ENTRYPOINT ["/usr/local/bin/campusclaw-plus"]

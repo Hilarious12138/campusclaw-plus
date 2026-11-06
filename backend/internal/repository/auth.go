@@ -162,19 +162,30 @@ func (m *MySQL) AuditEvents(ctx context.Context, u domain.Identity, f domain.Aud
 	return out, rows.Err()
 }
 func (m *MySQL) LoginAllowed(ctx context.Context, key string, now time.Time) (bool, error) {
-	var n int
-	var start time.Time
-	e := m.db.QueryRowContext(ctx, "SELECT failures,window_start FROM login_failures WHERE fingerprint=?", key).Scan(&n, &start)
-	if errors.Is(e, sql.ErrNoRows) {
-		return true, nil
+	tx, e := m.db.BeginTx(ctx, nil)
+	if e != nil {
+		return false, e
 	}
-	return n < 5 || now.Sub(start) >= 15*time.Minute, e
+	defer tx.Rollback()
+	if _, e = tx.ExecContext(ctx, "INSERT INTO login_failures VALUES(?,0,?) ON DUPLICATE KEY UPDATE failures=IF(window_start<=?,0,failures),window_start=IF(window_start<=?,VALUES(window_start),window_start)", key, now.UTC(), now.Add(-15*time.Minute).UTC(), now.Add(-15*time.Minute).UTC()); e != nil {
+		return false, e
+	}
+	var failures int
+	if e = tx.QueryRowContext(ctx, "SELECT failures FROM login_failures WHERE fingerprint=? FOR UPDATE", key).Scan(&failures); e != nil {
+		return false, e
+	}
+	if failures >= 5 {
+		return false, tx.Commit()
+	}
+	if _, e = tx.ExecContext(ctx, "UPDATE login_failures SET failures=failures+1 WHERE fingerprint=?", key); e != nil {
+		return false, e
+	}
+	return true, tx.Commit()
 }
 func (m *MySQL) LoginFailure(ctx context.Context, key string, now time.Time, success bool) error {
-	if success {
-		_, e := m.db.ExecContext(ctx, "DELETE FROM login_failures WHERE fingerprint=?", key)
-		return e
+	if !success {
+		return nil
 	}
-	_, e := m.db.ExecContext(ctx, "INSERT INTO login_failures VALUES(?,1,?) ON DUPLICATE KEY UPDATE failures=IF(window_start<=?,1,failures+1),window_start=IF(window_start<=?,VALUES(window_start),window_start)", key, now.UTC(), now.Add(-15*time.Minute).UTC(), now.Add(-15*time.Minute).UTC())
+	_, e := m.db.ExecContext(ctx, "DELETE FROM login_failures WHERE fingerprint=?", key)
 	return e
 }

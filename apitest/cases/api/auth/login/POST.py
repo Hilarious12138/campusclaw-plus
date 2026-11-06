@@ -11,3 +11,7 @@ def run(a):
  a.tokens.pop('teacher_a')
  assert a.sql("SELECT COUNT(*) FROM users WHERE password_hash LIKE '$argon2id$%';")=='4'
  assert int(a.sql('SELECT COUNT(*) FROM revoked_tokens;'))>=1
+
+ # The account fingerprint is separate from legitimate users and never logged in plaintext.
+ for _ in range(5):a.request('POST','/api/auth/login',{'username':'rate-limit-fixture','password':'wrong'},status=401)
+ a.request('POST','/api/auth/login',{'username':'rate-limit-fixture','password':'wrong'},status=429)

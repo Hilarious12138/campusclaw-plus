@@ -1,11 +1,13 @@
 package httpapi
 
 import (
+	"bytes"
 	"campusclaw-plus/internal/domain"
 	"campusclaw-plus/internal/service"
 	"encoding/json"
 	"errors"
 	"io"
+	"log/slog"
 	"mime"
 	"net"
 	"net/http"
@@ -15,9 +17,14 @@ import (
 )
 
 type Platform struct {
-	Auth      service.Auth
-	Origin    string
-	Resources service.Resources
+	Log           *slog.Logger
+	Auth          service.Auth
+	Origin        string
+	Resources     service.Resources
+	Materials     service.Materials
+	Retrieval     service.Retrieval
+	MCP           service.MCP
+	Conversations service.Conversations
 }
 
 func statusFor(e error) (int, string) {
@@ -46,28 +53,40 @@ func decode(w http.ResponseWriter, r *http.Request, out any, max int64) error {
 		return domain.ErrInvalid
 	}
 	r.Body = http.MaxBytesReader(w, r.Body, max)
-	d := json.NewDecoder(r.Body)
+
+	raw, e := io.ReadAll(r.Body)
+	if e != nil {
+		return domain.ErrInvalid
+	}
+	if rejectDuplicateKeys(json.NewDecoder(bytes.NewReader(raw)), 0) != nil {
+		return domain.ErrInvalid
+	}
+	d := json.NewDecoder(bytes.NewReader(raw))
 	d.DisallowUnknownFields()
-	if e = d.Decode(out); e != nil {
+	if d.Decode(out) != nil {
 		return domain.ErrInvalid
 	}
 	var extra any
 	if d.Decode(&extra) != io.EOF {
 		return domain.ErrInvalid
 	}
+
 	return nil
 }
 func (p *Platform) serve(w http.ResponseWriter, r *http.Request, id string) bool {
 	kind, resourceID := "", ""
 	parts := strings.Split(strings.Trim(r.URL.Path, "/"), "/")
-	if len(parts) >= 2 && parts[0] == "api" && (parts[1] == "agents" || parts[1] == "skills" || parts[1] == "prompts") && len(parts) <= 3 {
+	if r.URL.Path != "/api/skills/import" && len(parts) >= 2 && parts[0] == "api" && (parts[1] == "agents" || parts[1] == "skills" || parts[1] == "prompts") && len(parts) <= 3 {
 		kind = parts[1]
 		if len(parts) == 3 {
 			resourceID = parts[2]
 		}
 	}
 	known := r.URL.Path == "/api/auth/login" || r.URL.Path == "/api/auth/logout" || r.URL.Path == "/api/me" || r.URL.Path == "/api/audit-events"
-	known = known || kind != ""
+	business := r.URL.Path == "/api/materials" || strings.HasPrefix(r.URL.Path, "/api/materials/") || strings.HasPrefix(r.URL.Path, "/api/tasks/") || r.URL.Path == "/api/retrieval/search" || strings.HasPrefix(r.URL.Path, "/api/retrieval/chunks/")
+	ai := strings.HasPrefix(r.URL.Path, "/api/mcp/") || r.URL.Path == "/api/conversations" || strings.HasPrefix(r.URL.Path, "/api/conversations/") || r.URL.Path == "/api/skills/import"
+	business = business || ai
+	known = known || kind != "" || business
 	if !known {
 		return false
 	}
@@ -95,16 +114,31 @@ func (p *Platform) serve(w http.ResponseWriter, r *http.Request, id string) bool
 			}
 		}
 	}
-	if e == nil && kind == "" && r.Method != method {
+	if e == nil && kind == "" && !business && r.Method != method {
 		e = domain.ErrInvalid
 	}
 	if e == nil && r.Method != "GET" && r.Header.Get("Origin") != "" && r.Header.Get("Origin") != p.Origin {
 		e = domain.ErrForbidden
 	}
-	if e == nil && r.URL.Path != "/api/audit-events" && r.URL.RawQuery != "" {
+	if e == nil && r.URL.Path != "/api/audit-events" && r.URL.Path != "/api/materials" && r.URL.RawQuery != "" {
 		e = domain.ErrInvalid
 	}
 	audited := false
+	responseStatus := 0
+	if e == nil && len(parts) == 4 && parts[1] == "conversations" && parts[3] == "messages" && r.Method == "POST" {
+		var started bool
+		started, e = p.stream(w, r, u, event, id, parts[2])
+		if started {
+			return true
+		}
+	}
+	if e == nil && business {
+		if ai {
+			data, e, audited, responseStatus = p.ai(w, r, u, event)
+		} else {
+			data, e, audited, responseStatus = p.business(w, r, u, event)
+		}
+	}
 	if e == nil && kind != "" {
 		event.ActorID = u.ID
 		event.ClassID = u.ClassID
@@ -153,7 +187,7 @@ func (p *Platform) serve(w http.ResponseWriter, r *http.Request, id string) bool
 			e = domain.ErrInvalid
 		}
 	}
-	if e == nil && kind == "" {
+	if e == nil && kind == "" && !business {
 		switch r.URL.Path {
 		case "/api/auth/login":
 			var b struct {
@@ -190,9 +224,18 @@ func (p *Platform) serve(w http.ResponseWriter, r *http.Request, id string) bool
 	} else if !audited {
 		if ae := p.Auth.Audit(r.Context(), event); ae != nil {
 			e = ae
+			if p.Log != nil {
+				p.Log.Error("audit_unavailable", "module", "httpapi", "event", "audit_failure", "request_id", id)
+			}
 		}
 	}
 	status, code := statusFor(e)
+	if e == nil && responseStatus != 0 {
+		status = responseStatus
+		if status == 202 {
+			code = "ACCEPTED"
+		}
+	}
 	out := envelope{Code: code, RequestID: id}
 	if e == nil {
 		out.Data = data
@@ -246,4 +289,45 @@ func auditFilter(r *http.Request) (domain.AuditFilter, error) {
 		return f, domain.ErrInvalid
 	}
 	return f, nil
+}
+
+func rejectDuplicateKeys(d *json.Decoder, depth int) error {
+	if depth > 64 {
+		return domain.ErrInvalid
+	}
+	token, e := d.Token()
+	if e != nil {
+		return e
+	}
+	delimiter, ok := token.(json.Delim)
+	if !ok {
+		return nil
+	}
+	if delimiter == '{' {
+		seen := map[string]bool{}
+		for d.More() {
+			key, e := d.Token()
+			if e != nil {
+				return e
+			}
+			s, ok := key.(string)
+			if !ok || seen[s] {
+				return domain.ErrInvalid
+			}
+			seen[s] = true
+			if e = rejectDuplicateKeys(d, depth+1); e != nil {
+				return e
+			}
+		}
+	} else if delimiter == '[' {
+		for d.More() {
+			if e = rejectDuplicateKeys(d, depth+1); e != nil {
+				return e
+			}
+		}
+	} else {
+		return domain.ErrInvalid
+	}
+	_, e = d.Token()
+	return e
 }

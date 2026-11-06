@@ -3,6 +3,36 @@ services:
     extends: {file: compose.yaml, service: db}
   api:
     extends: {file: compose.yaml, service: api}
+    environment: &test-model
+      APP_ENV: test
+      APP_ORIGIN: http://web
+      TASK_TIMEOUT_SECONDS: '40'
+      TASK_LEASE_SECONDS: '45'
+      EMBEDDING_BASE_URL: http://fixture:8091/v1
+      EMBEDDING_MODEL: fixture-only
+      EMBEDDING_DIM: '8'
+      CHAT_BASE_URL: http://fixture:8091/v1
+      CHAT_API_KEY: ${EMBEDDING_API_KEY:?test key required}
+      CHAT_MODEL: fixture-only
+      MCP_ALLOWED_BASE_URLS: http://mcp-demo:8090
+  broker:
+    extends: {file: compose.yaml, service: broker}
+  qdrant:
+    extends: {file: compose.yaml, service: qdrant}
+  dispatcher:
+    extends: {file: compose.yaml, service: dispatcher}
+    environment: *test-model
+  worker:
+    extends: {file: compose.yaml, service: worker}
+    environment:
+      <<: *test-model
+      TEST_ACK_DELAY_MS: '15000'
+  mcp-demo:
+    extends: {file: compose.yaml, service: mcp-demo}
+  fixture:
+    build: {context: ., dockerfile: deploy/fixture.Dockerfile}
+    environment:
+      FIXTURE_API_KEY: ${EMBEDDING_API_KEY:?test key required}
   web:
     build: {context: ., dockerfile: deploy/web.Dockerfile}
     depends_on:
@@ -17,12 +47,22 @@ services:
     build: {context: ., dockerfile: deploy/grade.Dockerfile}
     environment:
       BASE_URL: http://web
+      FIXTURE_URL: http://fixture:8091
       APP_VERSION: ${APP_VERSION:?fill APP_VERSION}
       DB_TIMEOUT_MS: ${DB_TIMEOUT_MS:?fill DB_TIMEOUT_MS}
+      DB_HOST: db
+      DB_USER: ${DB_USER:?fill DB_USER}
+      DB_NAME: ${DB_NAME:?fill DB_NAME}
       DB_PASSWORD: ${DB_PASSWORD:?fill DB_PASSWORD}
       DB_ROOT_PASSWORD: ${DB_ROOT_PASSWORD:?fill DB_ROOT_PASSWORD}
+      SEED_PASSWORD: ${SEED_PASSWORD:?fill SEED_PASSWORD}
+      EMBEDDING_API_KEY: ${EMBEDDING_API_KEY:?fill EMBEDDING_API_KEY}
+      MCP_AUTH_TOKEN: ${MCP_AUTH_TOKEN:?fill MCP_AUTH_TOKEN}
+      APITEST_REPORT_DIR: /reports/api
     volumes:
       - ${GRADE_REPORT_DIR:?run scripts/grade.sh}:/reports
       - ./.git:/work/.git:ro
 volumes:
   mysql-data:
+  broker-data:
+  vector-data:

@@ -10,9 +10,13 @@ import (
 )
 
 type Config struct {
-	Environment, Version, HTTPAddr, DBAddr, DBName, DBUser, DBPassword string
-	JWTSecret, Origin, SeedPassword                                    string
-	DBTimeout, ShutdownTimeout                                         time.Duration
+	Environment, Version, HTTPAddr, DBAddr, DBName, DBUser, DBPassword                            string
+	BrokerAddr, BrokerUser, BrokerPassword, EmbeddingURL, EmbeddingKey, EmbeddingModel, QdrantURL string
+	ChatURL, ChatKey, ChatModel, MCPToken, MCPAllowed                                             string
+	TaskTimeoutSeconds, TaskLeaseSeconds, TaskMaxAttempts, TaskRetryBaseMS, TaskPollMS            int
+	EmbeddingDim                                                                                  int
+	JWTSecret, Origin, SeedPassword                                                               string
+	DBTimeout, ShutdownTimeout                                                                    time.Duration
 }
 
 func Load(get func(string) string) (Config, error) {
@@ -20,7 +24,7 @@ func Load(get func(string) string) (Config, error) {
 	for _, v := range []struct {
 		k string
 		p *string
-	}{{"APP_ENV", &c.Environment}, {"APP_VERSION", &c.Version}, {"HTTP_ADDR", &c.HTTPAddr}, {"DB_ADDR", &c.DBAddr}, {"DB_NAME", &c.DBName}, {"DB_USER", &c.DBUser}, {"DB_PASSWORD", &c.DBPassword}, {"JWT_SECRET", &c.JWTSecret}, {"APP_ORIGIN", &c.Origin}, {"SEED_PASSWORD", &c.SeedPassword}} {
+	}{{"APP_ENV", &c.Environment}, {"APP_VERSION", &c.Version}, {"HTTP_ADDR", &c.HTTPAddr}, {"DB_ADDR", &c.DBAddr}, {"DB_NAME", &c.DBName}, {"DB_USER", &c.DBUser}, {"DB_PASSWORD", &c.DBPassword}, {"JWT_SECRET", &c.JWTSecret}, {"APP_ORIGIN", &c.Origin}, {"SEED_PASSWORD", &c.SeedPassword}, {"BROKER_ADDR", &c.BrokerAddr}, {"BROKER_USER", &c.BrokerUser}, {"BROKER_PASSWORD", &c.BrokerPassword}, {"EMBEDDING_BASE_URL", &c.EmbeddingURL}, {"EMBEDDING_API_KEY", &c.EmbeddingKey}, {"EMBEDDING_MODEL", &c.EmbeddingModel}, {"QDRANT_URL", &c.QdrantURL}, {"CHAT_BASE_URL", &c.ChatURL}, {"CHAT_API_KEY", &c.ChatKey}, {"CHAT_MODEL", &c.ChatModel}, {"MCP_AUTH_TOKEN", &c.MCPToken}, {"MCP_ALLOWED_BASE_URLS", &c.MCPAllowed}} {
 		*v.p = get(v.k)
 		if strings.TrimSpace(*v.p) == "" {
 			return c, fmt.Errorf("required config: %s", v.k)
@@ -45,6 +49,33 @@ func Load(get func(string) string) (Config, error) {
 	}
 	if len(c.DBPassword) < 24 {
 		return c, fmt.Errorf("invalid config: DB_PASSWORD")
+	}
+	dim, de := strconv.Atoi(get("EMBEDDING_DIM"))
+	if de != nil || dim < 2 || dim > 8192 {
+		return c, fmt.Errorf("invalid config: EMBEDDING_DIM")
+	}
+	c.EmbeddingDim = dim
+	for key, raw := range map[string]string{"EMBEDDING_BASE_URL": c.EmbeddingURL, "QDRANT_URL": c.QdrantURL, "CHAT_BASE_URL": c.ChatURL} {
+		u, e := url.Parse(raw)
+		if e != nil || u.Host == "" || u.User != nil || u.RawQuery != "" || u.Fragment != "" || (u.Scheme != "http" && u.Scheme != "https") {
+			return c, fmt.Errorf("invalid config: %s", key)
+		}
+	}
+	if len(c.MCPToken) < 32 {
+		return c, fmt.Errorf("invalid config: MCP_AUTH_TOKEN")
+	}
+	if len(c.BrokerPassword) < 24 {
+		return c, fmt.Errorf("invalid config: BROKER_PASSWORD")
+	}
+	for key, target := range map[string]*int{"TASK_TIMEOUT_SECONDS": &c.TaskTimeoutSeconds, "TASK_LEASE_SECONDS": &c.TaskLeaseSeconds, "TASK_MAX_ATTEMPTS": &c.TaskMaxAttempts, "TASK_RETRY_BASE_MS": &c.TaskRetryBaseMS, "TASK_POLL_MS": &c.TaskPollMS} {
+		n, e := strconv.Atoi(get(key))
+		if e != nil {
+			return c, fmt.Errorf("invalid config: %s", key)
+		}
+		*target = n
+	}
+	if c.TaskTimeoutSeconds < 10 || c.TaskTimeoutSeconds > 600 || c.TaskLeaseSeconds < c.TaskTimeoutSeconds+5 || c.TaskLeaseSeconds > 3600 || c.TaskMaxAttempts < 1 || c.TaskMaxAttempts > 3 || c.TaskRetryBaseMS < 100 || c.TaskRetryBaseMS > 60000 || c.TaskPollMS < 50 || c.TaskPollMS > 10000 {
+		return c, fmt.Errorf("invalid task policy configuration")
 	}
 	n, e := strconv.Atoi(get("DB_TIMEOUT_MS"))
 	if e != nil || n < 100 || n > 10000 {

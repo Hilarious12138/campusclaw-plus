@@ -43,3 +43,5 @@
 检查：运行`make audit`；公告源不可达记为未验证，不能算通过。
 
 已审查的额外许可：MySQL驱动go-sql-driver/mysql为MPL-2.0，不修改其源文件；edwards25519为BSD-3-Clause；MySQL镜像含GPL-2.0上游组件，保留声明。React/Vite/TypeScript/Playwright及直接类型依赖的用途和许可仍纳入审查；上游许可不等于本项目选定了LICENSE。
+
+新增依赖许可：golang-jwt/jwt/v5为MIT、golang.org/x/crypto与x/sys为BSD-3-Clause、rabbitmq/amqp091-go为BSD-2-Clause、swagger-ui-dist为Apache-2.0；分别用于Bearer校验、密码哈希、AMQP与本地接口文档。RabbitMQ镜像为MPL-2.0组件，Qdrant为Apache-2.0组件，继续保留上游声明。版本与镜像摘要锁定，每次交付重新审计。

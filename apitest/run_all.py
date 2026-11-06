@@ -5,7 +5,12 @@ from common import API
 
 def run():
  a=API();rows=[]
- for p in sorted((Path(__file__).parent/'cases').rglob('*.py')):
+ paths=list((Path(__file__).parent/'cases').rglob('*.py'))
+ order=['auth','materials','retrieval','conversations','mcp','skills','audit-events']
+ def priority(p):
+  parts=p.parts
+  return next((i for i,k in enumerate(order) if k in parts),99),str(p)
+ for p in sorted(paths,key=priority):
   start=time.monotonic();row={'case':str(p.relative_to(Path(__file__).parent))}
   try:
    spec=importlib.util.spec_from_file_location('test_case',p);m=importlib.util.module_from_spec(spec);spec.loader.exec_module(m);m.run(a);row['status']='passed'

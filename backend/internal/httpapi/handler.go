@@ -28,6 +28,11 @@ type response struct {
 }
 
 func (w *response) WriteHeader(n int) { w.status = n; w.ResponseWriter.WriteHeader(n) }
+func (w *response) Flush() {
+	if f, ok := w.ResponseWriter.(http.Flusher); ok {
+		f.Flush()
+	}
+}
 func Handler(s service.Health, logger *slog.Logger, platform ...*Platform) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		start := time.Now()

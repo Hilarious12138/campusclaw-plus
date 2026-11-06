@@ -11,3 +11,5 @@ python3 -m unittest discover -s scripts -p "test_*.py"
 OPENSPEC_TELEMETRY=0 openspec validate --all --strict
 
 sh scripts/check-security.sh
+
+sh scripts/integration.sh

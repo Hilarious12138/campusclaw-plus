@@ -82,3 +82,29 @@ type ResourceStore interface {
 	SaveResource(context.Context, Identity, Resource, Audit) (Resource, error)
 	DeleteResource(context.Context, Identity, string, string, Audit) error
 }
+
+// MarshalJSON keeps absent identities and skills explicit in seven-column audit records.
+func (a Audit) MarshalJSON() ([]byte, error) {
+	type plain Audit
+	b, e := json.Marshal(plain(a))
+	if e != nil {
+		return nil, e
+	}
+	var m map[string]any
+	if e = json.Unmarshal(b, &m); e != nil {
+		return nil, e
+	}
+	if a.ActorID == "" {
+		m["actor_id"] = nil
+	}
+	if a.ClassID == "" {
+		m["class_id"] = nil
+	}
+	if a.SkillID == "" {
+		m["skill_id"] = nil
+	}
+	if a.Usage == nil {
+		m["usage"] = "unknown"
+	}
+	return json.Marshal(m)
+}

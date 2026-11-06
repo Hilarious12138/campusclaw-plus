@@ -96,3 +96,17 @@ func TestAuthorizationAndAuditFailures(t *testing.T) {
 		t.Fatal("audit failure hidden")
 	}
 }
+func TestStrictJSON(t *testing.T) {
+	for _, body := range []string{`{"username":"one","username":"two","password":"test"}`, `{"username":"one","password":"test"} {}`, `{"username":"one","password":"test","class_id":"other"}`} {
+		r := httptest.NewRequest("POST", "/api/auth/login", strings.NewReader(body))
+		r.Header.Set("Content-Type", "application/json")
+		w := httptest.NewRecorder()
+		var v struct {
+			Username string `json:"username"`
+			Password string `json:"password"`
+		}
+		if decode(w, r, &v, 8192) == nil {
+			t.Fatal("ambiguous request accepted")
+		}
+	}
+}

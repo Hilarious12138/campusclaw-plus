@@ -5,7 +5,7 @@ def run(a):
  rows=a.request('GET','/api/audit-events?actor_id='+uid+'&status=403',token=t)['data'];assert rows
  for row in rows:
   assert row['class_id']=='a'*32 and row['actor_id']==uid and row['http_status']==403
-  for k in ['occurred_at','operation','object_type','object_id','outcome','usage','duration_ms']:assert k in row
+  for k in ['occurred_at','operation','object_type','object_id','outcome','skill_id','usage','duration_ms']:assert k in row
  a.request('GET','/api/audit-events',token=s,status=403)
  assert a.request('GET','/api/audit-events?actor_id='+uid,token=b)['data']==[]
  a.request('GET','/api/audit-events?class_id=other',token=t,status=400)

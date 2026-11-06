@@ -1,0 +1,6 @@
+services:
+  fixture:
+    build: {context: ., dockerfile: deploy/fixture.Dockerfile}
+    environment:
+      FIXTURE_API_KEY: ${EMBEDDING_API_KEY:?test fixture key required}
+
