@@ -14,7 +14,7 @@
 | R6 S13 | retrieval/search/POST.py、index_test.go | 三模式、正文回查、双侧过滤、无依据 |
 | R7 S14 | conversations/POST.py、browser.mjs | 实际快照、模板/Skill版本、SSE、引用 |
 | R7 S15 | mcp/servers/POST.py、mcp-server测试 | 真实工具、断开/越权拒绝、审计 |
-| R7 S16 | 待真实模型配置后执行固定实验 | 不能以fixture回答证明提示词抗攻击 |
+| R7 S16 | 用户已暂缓AI接入，后续配置后执行固定实验 | 不能以fixture回答证明提示词抗攻击 |
 | R8 S17—18 | grade.sh、固定reports | 证据、修复同场景、缺阶段失败 |
 
 本阶段作业评分业务、真实外部模型/向量服务的供应商验证、独立人类同伴评审和异机复验尚未完成。测试中的嵌入/对话fixture明确标识；MySQL、RabbitMQ、Qdrant、MCP及Chromium均为真实独立容器。fixture结果不能推导真实模型质量或安全性。

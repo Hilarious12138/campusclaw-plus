@@ -33,12 +33,12 @@ finish() {
    printf '<!doctype html><meta charset="utf-8"><title>CampusClaw Plus 验收失败</title><h1>基础设施检查失败</h1><p>阶段：%s。未执行的必测项不能记为通过。</p><p>请确认.env、Docker Compose与镜像网络，查看infra.log后重新运行。宿主无需安装Python、Node或Chrome。</p>' "$stage" >"$GRADE_REPORT_DIR/report.html"
    printf '{"status":"failed","stage":"%s","reason":"infrastructure failure; required cases not executed","exit_code":1,"checks":[' "$stage" >"$GRADE_REPORT_DIR/report.json"
    separator=''
-   for id in C01 C02 C03 C04 C05 C06 C07 C08 B01 B02 B03 A01 R01 R02 R03 R04 R05 R06 R07; do
+   for id in C01 C02 C03 C04 C05 C06 C07 C08 B01 B02 B03 B04 A01 A02 R01 R02 R03 R04 R05 R06 R07; do
      printf '%s{"id":"%s","status":"blocked","reason":"grading infrastructure unavailable"}' "$separator" "$id" >>"$GRADE_REPORT_DIR/report.json"
      separator=,
    done
    printf ']}\n' >>"$GRADE_REPORT_DIR/report.json"
-   printf '<p>未执行的必测项（均为阻塞）：C01-C08、R01-R07，共19项，不计通过。</p>' >>"$GRADE_REPORT_DIR/report.html"
+   printf '<p>未执行的必测项（均为阻塞）：C01-C08、R01-R07，共21项，不计通过。</p>' >>"$GRADE_REPORT_DIR/report.html"
  fi
  printf '\n验收报告：%s/report.html\n机器报告：%s/report.json\n退出码：%s\n' "$GRADE_REPORT_DIR" "$GRADE_REPORT_DIR" "$failed"
  exit "$failed"
@@ -46,6 +46,9 @@ finish() {
 trap finish EXIT
 trap 'exit 1' INT TERM
 [ -f "$CONFIG_FILE" ] || { printf 'Missing .env; copy .env.example and fill documented keys.\n' >"$GRADE_REPORT_DIR/infra.log"; exit 1; }
+stage=fixture-configuration
+TEST_FIXTURE_API_KEY=$("$DOCKER" run --rm node:24-alpine@sha256:ebfe2f90462722a7a4de65e91990e97fe0d401c70e0e762c5b53302f905ec1c1 node -e 'process.stdout.write(require("node:crypto").randomBytes(32).toString("hex"))')
+export TEST_FIXTURE_API_KEY
 stage=build
 printf 'Building isolated grading tools and application containers...\n'
 dc build >>"$GRADE_REPORT_DIR/infra.log" 2>&1
@@ -60,6 +63,15 @@ stage=healthy
 phase healthy
 stage=business
 phase business
+stage=concurrency
+dc stop worker dispatcher >>"$GRADE_REPORT_DIR/infra.log" 2>&1
+phase concurrency
+dc start worker dispatcher >>"$GRADE_REPORT_DIR/infra.log" 2>&1
+stage=broker-outage
+dc stop broker >>"$GRADE_REPORT_DIR/infra.log" 2>&1
+dc run --rm --no-deps -e BROKER_PHASE=down grader broker >>"$GRADE_REPORT_DIR/runner.log" 2>&1 || failed=1
+dc up -d --wait --wait-timeout 90 broker >>"$GRADE_REPORT_DIR/infra.log" 2>&1
+dc run --rm --no-deps -e BROKER_PHASE=recovered grader broker >>"$GRADE_REPORT_DIR/runner.log" 2>&1 || failed=1
 stage=async-recovery
 for delay in 10000 30000; do
  dc stop worker >>"$GRADE_REPORT_DIR/infra.log" 2>&1

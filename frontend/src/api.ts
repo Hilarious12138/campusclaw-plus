@@ -5,7 +5,7 @@ export type Citation={chunk_id:string;material_id:string;material_title:string;c
 export async function request<T>(token:string,path:string,method='GET',body?:unknown,headers:Record<string,string>={}):Promise<T>{
  const isForm=body instanceof FormData;
  const r=await fetch(path,{method,headers:{...(!isForm&&body!==undefined?{'Content-Type':'application/json'}:{}),...(token?{Authorization:'Bearer '+token}:{}),...headers},body:body===undefined?undefined:isForm?body:JSON.stringify(body)});
- const v=await r.json();if(!r.ok)throw new Error(({401:'登录已失效，请重新登录',403:'当前账号没有操作权限',404:'资源不存在或不可访问',409:'内容已变更或请求冲突，请刷新重试',429:'请求过多，请稍后重试',503:'服务暂不可用，请稍后重试'} as Record<number,string>)[r.status]||'输入无效，请检查后重试');return v.data;
+ const v=await r.json();if(r.status===401&&typeof window!=='undefined')window.dispatchEvent(new Event('auth-expired'));if(!r.ok)throw new Error(({401:'登录已失效，请重新登录',403:'当前账号没有操作权限',404:'资源不存在或不可访问',409:'内容已变更或请求冲突，请刷新重试',429:'请求过多，请稍后重试',503:'服务暂不可用，请稍后重试'} as Record<number,string>)[r.status]||'输入无效，请检查后重试');return v.data;
 }
 export async function streamEvents(response:Response,onEvent:(kind:string,data:Record<string,unknown>)=>void){
  if(!response.ok||!response.body)throw new Error('会话请求失败，请检查登录和服务状态');

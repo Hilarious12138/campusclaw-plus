@@ -14,6 +14,7 @@ def run(a):
  turns=a.request('GET','/api/conversations/'+c['id'],token=s)['data']['turns'];assert len(turns)==1 and turns[0]['status']=='succeeded';assert turns[0]['skill_name']=='数学解题引导' and turns[0]['citations']
  assert int(a.sql("SELECT JSON_LENGTH(snapshot) FROM conversation_turns WHERE id='"+turns[0]['id']+"';"))>=2
 
- snapshot=a.sql("SELECT snapshot FROM conversation_turns WHERE id='"+turns[0]['id']+"';")
+ snapshot=json.loads(a.sql("SELECT snapshot FROM conversation_turns WHERE id='"+turns[0]['id']+"';"))
+ snapshot='\n'.join(v['content'] for v in snapshot)
  assert '数学解题引导' in snapshot and '只引导' in snapshot and '<evidence>' in snapshot
  assert '语文阅读引导' not in snapshot

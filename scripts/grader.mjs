@@ -18,7 +18,7 @@ if(phase==='checks'){
  await test('C03','Go格式、race测试与vet','正常/失败/边界和在途/超预算停机测试通过',()=>{assert.equal(cmd('gofmt',['-l','.'],'/work/backend').trim(),'');return cmd('go',['test','-race','./...'],'/work/backend')+cmd('go',['vet','./...'],'/work/backend');});
  await test('C04','前端四态测试、类型和构建','正常/失败/边界测试及TypeScript/Vite构建成功',()=>cmd('npm',['test'],'/work/frontend')+cmd('npm',['run','build'],'/work/frontend'));
  await test('C05','OpenSpec strict','所有当前变更/长期规约strict通过',()=>cmd('openspec',['validate','--all','--strict']));
- await test('C06','全部npm依赖漏洞审计','无未豁免高危；公告不可达算失败',()=>cmd('npm',['audit','--audit-level=high'],'/work/frontend',120000));
+ await test('C06','全部npm依赖漏洞审计','无未豁免高危；公告不可达算失败',()=>cmd('node',['/work/scripts/npm-audit.mjs'],'/work/frontend',180000));
  await test('C08','报告失败与缺证据判定','断言失败/缺记录/清理失败/缺env均不能通过',()=>cmd('node',['--test','scripts/test_grader.mjs']));
  await test('C07','Go可达漏洞审计','govulncheck无可达漏洞；公告不可达算失败',()=>cmd('govulncheck',['./...'],'/work/backend',180000));
 }else if(phase==='healthy'){
@@ -37,9 +37,13 @@ if(phase==='checks'){
  await test('B01','业务接口与数据库一致性','认证/权限/材料/检索/流式/MCP/审计故障用例全部通过',()=>cmd('python3',['apitest/run_all.py'],'/work',240000));
  await test('B02','真实浏览器业务与XSS','DOM转义、内存令牌、材料/会话/工具/审计截图',()=>cmd('node',['apitest/browser.mjs'],'/work',120000));
  await test('B03','安全扫描红绿证据','人工fixture阻断非零，删除后扫描通过；与真实泄露区分',()=>{const result=cmd('python3',['scripts/gate-evidence.py']);fs.copyFileSync('/work/reports/gate-red-green.md',path.join(dir,'gate-red-green.md'));return result;});
+ }else if(phase==='concurrency'){
+ await test('B04','并发与旧租约隔离','20并发同键只建一任务，旧worker提交被拒、新worker只生效一份',()=>{const prev=process.env.PLUS_INTEGRATION;process.env.PLUS_INTEGRATION='1';try{return cmd('go',['test','-run','TestTaskConcurrencyAndFencing','-count=1','./internal/repository'],'/work/backend',90000);}finally{if(prev===undefined)delete process.env.PLUS_INTEGRATION;else process.env.PLUS_INTEGRATION=prev;}});
  }else if(phase==='async'){
  cmd('python3',['apitest/async_cases.py'],'/work',120000);
+ }else if(phase==='broker'){cmd('python3',['apitest/broker_cases.py'],'/work',120000);
  }else if(phase==='async-summary'){
+ await test('A02','broker故障后可靠发件箱补投','broker停止仍202，恢复无需再提交，最终succeeded',()=>{const v=JSON.parse(fs.readFileSync(path.join(dir,'broker-recovery.json')));assert.equal(v.status,'passed');});
  await test('A01','异步三判据与重复投递','每组20次P95<1秒；停worker仍接收，恢复完成，ACK前kill不重复结果',()=>{for(const ms of [10000,30000]){const v=JSON.parse(fs.readFileSync(path.join(dir,'async-'+ms+'.json')));assert.equal(v.status,'passed');assert.equal(v.result_count,'1');assert.ok(v.duplicate_redelivery>v.deliveries_before_replay);assert.ok(v.p95_ms<1000);assert.ok(Number(v.worker_duration_ms)>=ms); }return 'Real MySQL/RabbitMQ; controlled 10s/30s embedding fixture, not real-model speed evidence';});
  }else if(phase==='down'){
  await test('R04','真实数据库不可达','停本测试DB：health503/down且超时有界，live仍200',async()=>{const {j,ms}=await http('/health',503,'DEPENDENCY_UNAVAILABLE');assert.equal(j.data.dependencies.mysql,'down');assert.ok(ms<=Number(process.env.DB_TIMEOUT_MS)+1000);await http('/live',200,'OK');return JSON.stringify({mysql:'down',elapsed_ms:Math.round(ms)});});
@@ -49,7 +53,7 @@ if(phase==='checks'){
  await test('R06','请求JSON日志与脱敏','Go/Nginx字段完整、ID关联且无查询/秘密',()=>{for(const [f,duration] of [['api.log','duration_ms'],['web.log','duration_seconds']]){const text=fs.readFileSync(path.join(dir,f),'utf8');for(const s of secrets)assert.equal(text.includes(s),false);const lines=text.split('\n').filter(l=>l.trim());const entries=(f==='api.log'?lines:lines.filter(l=>l.startsWith('{'))).map(l=>JSON.parse(l));const requests=entries.filter(e=>e.event==='request');assert.ok(requests.some(e=>e.request_id==='acceptance-check'));for(const r of requests){for(const k of ['time','level','module','event','request_id','method','path','status',duration])assert.ok(k in r);assert.equal(r.path.includes('?'),false);}}});
  await test('R07','真实优雅退出','API停止退出0且有结构化shutdown事件；在途/预算规则由C03验证',()=>{assert.equal(process.env.API_EXIT_CODE,'0');const logs=fs.readFileSync(path.join(dir,'api.log'),'utf8');assert.ok(logs.split('\n').filter(l=>l.startsWith('{')).some(l=>JSON.parse(l).event==='shutdown'));});
 }else if(phase==='finalize'){
- const expected={checks:['C01','C02','C03','C04','C05','C06','C07','C08'],healthy:['R01','R02','R03'],business:['B01','B02','B03'],'async-summary':['A01'],down:['R04'],recovered:['R05'],stopped:['R06','R07']};const all=[];
+ const expected={checks:['C01','C02','C03','C04','C05','C06','C07','C08'],healthy:['R01','R02','R03'],business:['B01','B02','B03'],concurrency:['B04'],'async-summary':['A01','A02'],down:['R04'],recovered:['R05'],stopped:['R06','R07']};const all=[];
  for(const [p,ids] of Object.entries(expected)){let found=[];try{found=JSON.parse(fs.readFileSync(path.join(dir,p+'.json'),'utf8'));}catch{}if(!Array.isArray(found))found=[];all.push(...found);for(const id of ids)if(!found.some(r=>r.id===id))all.push({id,name:p+'阶段未完成',status:'blocked',criterion:'必测项必须执行，不得缺记录',elapsed_ms:0,detail:'前置构建/部署或该阶段失败，请查看infra.log和runner.log'});}
  if(process.env.HOST_FAILURE==='1'&&!all.some(r=>r.status!=='passed'))all.push({id:'INFRA',name:'宿主编排或清理失败',status:'failed',criterion:'部署及隔离清理均必须成功',elapsed_ms:0,detail:'阶段：'+(process.env.HOST_FAILURE_REASON||'unknown')+'；请查看infra.log'});
  const failure=all.some(r=>r.status!=='passed');let sha='unavailable';try{sha=cmd('git',['rev-parse','HEAD']).trim();}catch{}

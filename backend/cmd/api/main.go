@@ -12,6 +12,7 @@ import (
 	"log/slog"
 	"net"
 	"net/http"
+	"net/url"
 	"os"
 	"os/signal"
 	"strings"
@@ -44,7 +45,7 @@ func run(logger *slog.Logger) error {
 	db.TaskRetryBaseMS = c.TaskRetryBaseMS
 	credentials := repository.Credentials{Secret: []byte(c.JWTSecret), Now: time.Now}
 	migrationCtx, migrationCancel := context.WithTimeout(context.Background(), 30*time.Second)
-	e = db.Migrate(migrationCtx, credentials, c.SeedPassword)
+	e = db.Migrate(migrationCtx, credentials, c.SeedPasswords)
 	migrationCancel()
 	if e != nil {
 		return fmt.Errorf("platform migration failed")
@@ -54,7 +55,11 @@ func run(logger *slog.Logger) error {
 		return fmt.Errorf("credential initialization failed")
 	}
 	auth := service.Auth{Store: db, Credentials: credentials, Now: time.Now, FingerprintKey: []byte(c.JWTSecret), DummyHash: dummy}
-	platform := &httpapi.Platform{Log: logger, Auth: auth, Origin: c.Origin, Resources: service.Resources{Store: db}, Materials: service.Materials{Store: db}, Retrieval: service.Retrieval{Store: db, Index: &repository.Index{EmbeddingURL: c.EmbeddingURL, EmbeddingKey: c.EmbeddingKey, EmbeddingModel: c.EmbeddingModel, Dimension: c.EmbeddingDim, QdrantURL: c.QdrantURL, Client: repository.InternalClient()}}}
+	indexClient := repository.InternalClient()
+	if c.AIEnabled {
+		indexClient.Timeout = time.Duration(c.EmbeddingTimeoutSeconds) * time.Second
+	}
+	platform := &httpapi.Platform{AIEnabled: c.AIEnabled, Log: logger, Auth: auth, Origin: c.Origin, Resources: service.Resources{Store: db}, Materials: service.Materials{Store: db}, Retrieval: service.Retrieval{Store: db, Index: &repository.Index{EmbeddingURL: c.EmbeddingURL, EmbeddingKey: c.EmbeddingKey, EmbeddingModel: c.EmbeddingModel, Dimension: c.EmbeddingDim, QdrantURL: c.QdrantURL, Client: indexClient}}}
 	platform.MCP = service.MCP{Store: db, Remote: repository.MCPRemote{AllowedURLs: strings.Split(c.MCPAllowed, ","), Token: c.MCPToken}}
 	platform.Conversations = service.Conversations{Store: db, Resources: db, MCP: db, Remote: platform.MCP.Remote, Audit: db, Retrieval: platform.Retrieval, Model: repository.ChatModel{BaseURL: c.ChatURL, APIKey: c.ChatKey, Model: c.ChatModel}}
 	seedCtx, seedCancel := context.WithTimeout(context.Background(), 10*time.Second)
@@ -69,7 +74,8 @@ func run(logger *slog.Logger) error {
 	}
 	ctx, cancel := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
 	defer cancel()
-	s := &http.Server{Handler: httpapi.Handler(service.Health{DB: db, Version: c.Version, Timeout: c.DBTimeout, Now: time.Now}, logger, platform), ReadHeaderTimeout: 5 * time.Second, IdleTimeout: 30 * time.Second, MaxHeaderBytes: 16 << 10}
+	brokerAddress := url.URL{Scheme: "amqp", Host: c.BrokerAddr, User: url.UserPassword(c.BrokerUser, c.BrokerPassword), Path: "/"}
+	s := &http.Server{Handler: httpapi.Handler(service.Health{Broker: repository.BrokerProbe{Address: brokerAddress.String()}, DB: db, Version: c.Version, Timeout: c.DBTimeout, Now: time.Now}, logger, platform), ReadHeaderTimeout: 5 * time.Second, IdleTimeout: 30 * time.Second, MaxHeaderBytes: 16 << 10}
 	logger.Info("started", "module", "runtime", "request_id", "system", "event", "startup", "version", c.Version)
 	e = lifecycle.Serve(ctx, s, listener, c.ShutdownTimeout)
 	logger.Info("stopped", "module", "runtime", "request_id", "system", "event", "shutdown")

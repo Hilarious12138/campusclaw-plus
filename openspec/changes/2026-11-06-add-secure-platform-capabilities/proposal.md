@@ -18,7 +18,10 @@ Plus当前只有工程骨架；GD已有认证、材料、检索、AI应用/Skill
 - `secure-platform-capabilities`：受控转换、身份/资源授权、安全检查、审计与分阶段业务验收。
 
 ### Modified Capabilities
-无；长期能力仅在实际实现并验收后同步。本次只产出计划。
+- `platform-foundation`：登记新增公开登录/文档入口，其他业务继续默认拒绝。
+- `portable-grading`：验收扩展到业务和队列，区分夹具与真实依赖。
+- `project-documentation`：保留原15个标识并追加必测，报告按实际范围标注。
+长期正文仅在相应验证通过后同步；新增delta用于防止旧“只有骨架”表述与业务冲突。
 
 ## Non-goals
 

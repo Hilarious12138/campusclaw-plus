@@ -14,7 +14,7 @@ import (
 //go:embed platform-schema.sql
 var platformSchema string
 
-func (m *MySQL) Migrate(ctx context.Context, credentials domain.Credentials, seedPassword string) error {
+func (m *MySQL) Migrate(ctx context.Context, credentials domain.Credentials, seedPasswords map[string]string) error {
 	for _, q := range strings.Split(platformSchema, ";") {
 		if strings.TrimSpace(q) != "" {
 			if _, e := m.db.ExecContext(ctx, q); e != nil {
@@ -29,9 +29,13 @@ func (m *MySQL) Migrate(ctx context.Context, credentials domain.Credentials, see
 	if n > 0 {
 		return nil
 	}
-	hash, e := credentials.Hash(seedPassword)
-	if e != nil {
-		return e
+	hashes := map[string]string{}
+	for name, value := range seedPasswords {
+		hash, e := credentials.Hash(value)
+		if e != nil {
+			return e
+		}
+		hashes[name] = hash
 	}
 	tx, e := m.db.BeginTx(ctx, nil)
 	if e != nil {
@@ -44,7 +48,7 @@ func (m *MySQL) Migrate(ctx context.Context, credentials domain.Credentials, see
 			return e
 		}
 		for _, role := range []string{"teacher", "student"} {
-			if _, e = tx.ExecContext(ctx, "INSERT INTO users(id,username,password_hash,role,class_id,created_at) VALUES(?,?,?,?,?,UTC_TIMESTAMP(6)) ON DUPLICATE KEY UPDATE id=id", NewID(), role+"_"+c, hash, role, cid); e != nil {
+			if _, e = tx.ExecContext(ctx, "INSERT INTO users(id,username,password_hash,role,class_id,created_at) VALUES(?,?,?,?,?,UTC_TIMESTAMP(6)) ON DUPLICATE KEY UPDATE id=id", NewID(), role+"_"+c, hashes[role+"_"+c], role, cid); e != nil {
 				return e
 			}
 		}

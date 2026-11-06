@@ -14,3 +14,11 @@ def run(a):
  done=a.wait_task(v['task_id'],t);assert done['status']=='succeeded',done.get('error_code')
  assert a.sql("SELECT COUNT(*) FROM task_results WHERE task_id='"+v['task_id']+"';")=='1'
  assert int(a.sql("SELECT COUNT(*) FROM knowledge_chunks WHERE material_id='"+v['material_id']+"';"))>=1
+
+ # Material, task and outbox must roll back together if the outbox insert is unavailable.
+ baseline=a.sql('SELECT (SELECT COUNT(*) FROM materials),(SELECT COUNT(*) FROM tasks);')
+ a.sql('RENAME TABLE task_outbox TO task_outbox_test_backup;')
+ try:
+  a.upload('rollback-'+key+'.md',text,t,key+'rollback',status=503)
+  assert a.sql('SELECT (SELECT COUNT(*) FROM materials),(SELECT COUNT(*) FROM tasks);')==baseline
+ finally:a.sql('RENAME TABLE task_outbox_test_backup TO task_outbox;')

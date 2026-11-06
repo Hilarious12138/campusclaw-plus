@@ -2,7 +2,7 @@
 import http from 'node:http';import crypto from 'node:crypto';
 let delay=0,mode='ok',calls=0,chatCalls=0;let lastChat=null;
 const vocab=[['方程','等式','未知数','equation'],['面积','正方形','square'],['语文','阅读','poem'],['单位','长度','meter'],['光合','植物'],['SQL','database'],['课程','教学'],['噪声','zzzz']];
-function embedding(s){const out=Array(8).fill(0);for(let i=0;i<vocab.length;i++)for(const k of vocab[i])if(s.toLowerCase().includes(k.toLowerCase()))out[i]+=1;if(out.every(x=>x===0)){const h=crypto.createHash('sha256').update(s).digest();out[h[0]%8]=1;}return out;}
+function embedding(s){const out=Array(8).fill(0);for(let i=0;i<vocab.length;i++)for(const k of vocab[i])if(s.toLowerCase().includes(k.toLowerCase()))out[i]+=1;if(out.every(x=>x===0)){out[7]=1;}return out;}
 http.createServer(async(req,res)=>{let raw='';for await(const b of req){raw+=b;if(raw.length>4e6){res.writeHead(413).end();return;}}let b={};try{if(raw)b=JSON.parse(raw);}catch{res.writeHead(400).end();return;}
  const json=(s,v)=>{res.writeHead(s,{'Content-Type':'application/json'});res.end(JSON.stringify(v));};
  if(req.url==='/health'){json(200,{fixture:true});return;}

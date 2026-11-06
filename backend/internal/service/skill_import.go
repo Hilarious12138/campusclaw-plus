@@ -37,6 +37,8 @@ func (s Conversations) ParseSkill(raw string) (SkillBody, error) {
 			for _, s := range strings.FieldsFunc(value, func(r rune) bool { return r == ',' || r == '，' }) {
 				v.Conditions = append(v.Conditions, strings.TrimSpace(s))
 			}
+		case "资料", "materials":
+			v.MaterialHint = value
 		case "工具", "tools":
 			for _, s := range strings.FieldsFunc(value, func(r rune) bool { return r == ',' || r == '，' }) {
 				v.Tools = append(v.Tools, strings.TrimSpace(s))

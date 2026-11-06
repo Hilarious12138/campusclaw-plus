@@ -27,7 +27,7 @@
 
 JWT仅内存，HS256允许算法固定、密钥至少32字节随机值；issuer=campusclaw-plus、audience=campusclaw-plus-api，期限30分钟，校验exp/nbf/iat/sub/jti。退出撤销jti；敏感请求每次校验用户状态、成员资格与角色，失效身份默认拒绝。DB故障返回503，不能当匿名成功。刷新页面重新登录，首版不引入refresh Cookie。
 
-POST /api/auth/login显式公开（其他业务默认鉴权）；GET /api/me、POST /api/auth/logout。登录失败统一401；每账号指纹+来源5次失败/15分钟后429，指纹不可明文记账号。种子用A/B班教师学生四角色样本，密码运行时注入并哈希，不在Git保存值。
+POST /api/auth/login显式公开（其他业务默认鉴权）；GET /api/me、POST /api/auth/logout。登录失败统一401；每账号指纹+来源5次失败/15分钟后429，指纹不可明文记账号。种子用A/B班教师学生四角色样本，四个种子密码独立、互不相同，运行时注入并哈希，不在Git保存值。
 
 每个登录身份只有一个当前认证班级；首版不开放切班。客户端class_id/classId均不能覆盖；未知/重复参数400。GD多班级路由转换成/api/materials、/api/retrieval/search、/api/retrieval/chunks/{id}、/api/agents、/api/skills、/api/conversations及其messages、/api/mcp/servers及connect/disconnect/tools、/api/audit-events。后续多班切换须新规约并验证成员资格。
 
@@ -78,3 +78,7 @@ SEC-01匿名、02归属、03角色、04服务层写权限、05资产、06依赖�
 ## 实施记录
 
 已批准按阶段推进。认证/审计首批跨越领域端口、SQL迁移、JWT适配、HTTP与容器配置，含必要新测试，超过400行；按各职责文件拆分，基础设施与单测单列，不整体复制GD。先固定规划，再测试来源与Plus，再提交首阶段；未完成的后续模块不提前标完成。
+
+## AI接入暂缓
+
+2026-11-07用户明确先完成测试替身验收，AI API暂不填写/接入。AI_ENABLED为必填开关；false时不要求任何模型/嵌入地址或密钥，材料仅发布MySQL切片供keyword检索，向量/混合和对话不伪装可用。true时必须配置完整供应商参数。Docker验收显式启用fixture，不能据其宣称真实AI已联调；后续不再新增AI接口实现，真实AI验证待单独恢复。嵌入超时env外置，生产建议30秒，延迟30秒的机制测试使用35秒调用上限/40秒任务上限，避免把依赖超时误当队列丢任务。

@@ -30,6 +30,7 @@ type AgentBody struct {
 	MaterialIDs []string `json:"material_ids"`
 }
 type SkillBody struct {
+	MaterialHint string   `json:"material_hint,omitempty"`
 	Name         string   `json:"name"`
 	Conditions   []string `json:"conditions"`
 	Instructions string   `json:"instructions"`

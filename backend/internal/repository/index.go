@@ -198,3 +198,19 @@ func (i *Index) Search(ctx context.Context, cid string, vector []float64, limit 
 	}
 	return ids, nil
 }
+
+func (i *Index) Delete(ctx context.Context, ids []string) error {
+	if len(ids) == 0 {
+		return nil
+	}
+	if e := i.ensure(ctx); e != nil {
+		return e
+	}
+	for start := 0; start < len(ids); start += 100 {
+		end := min(start+100, len(ids))
+		if e := i.call(ctx, "POST", strings.TrimRight(i.QdrantURL, "/")+"/collections/campusclaw/points/delete?wait=true", "", map[string]any{"points": ids[start:end]}, nil); e != nil {
+			return e
+		}
+	}
+	return nil
+}

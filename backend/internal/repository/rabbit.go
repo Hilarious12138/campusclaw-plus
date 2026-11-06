@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"errors"
 	amqp "github.com/rabbitmq/amqp091-go"
+	"net"
 	"time"
 )
 
@@ -140,4 +141,22 @@ func (r *Rabbit) Consume(ctx context.Context, handle func(context.Context, strin
 			}
 		}
 	}
+}
+
+type BrokerProbe struct{ Address string }
+
+func (p BrokerProbe) Ping(ctx context.Context) error {
+	c, e := amqp.DialConfig(p.Address, amqp.Config{Dial: func(network, address string) (net.Conn, error) {
+		c, e := (&net.Dialer{}).DialContext(ctx, network, address)
+		if e == nil {
+			if deadline, ok := ctx.Deadline(); ok {
+				c.SetDeadline(deadline)
+			}
+		}
+		return c, e
+	}})
+	if e != nil {
+		return errors.New("broker unavailable")
+	}
+	return c.Close()
 }

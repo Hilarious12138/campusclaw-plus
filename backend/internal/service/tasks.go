@@ -40,6 +40,7 @@ func (s Materials) Task(ctx context.Context, u domain.Identity, id string) (doma
 }
 
 type Runner struct {
+	VectorEnabled        bool
 	Timeout, Lease, Poll time.Duration
 	Store                domain.TaskStore
 	Index                domain.Index
@@ -57,6 +58,28 @@ func (r Runner) Dispatch(ctx context.Context, q domain.Queue) error {
 			return nil
 		case <-ticker.C:
 			ticks++
+			if ticks%60 == 0 {
+				if e := r.Store.CleanupExpired(ctx); e != nil {
+					return e
+				}
+				materials, e := r.Store.Orphans(ctx)
+				if e != nil {
+					return e
+				}
+				for _, m := range materials {
+					_, _, parts := splitText(m.Content, ChunkOptions{Strategy: "auto", MaxLength: 800, OverlapRatio: 0.1})
+					ids := []string{}
+					for i := range parts {
+						ids = append(ids, chunkID(m.ID, m.InputHash, i+1))
+					}
+					if e = r.Index.Delete(ctx, ids); e != nil {
+						return e
+					}
+					if e = r.Store.MarkCleaned(ctx, m.TaskID); e != nil {
+						return e
+					}
+				}
+			}
 			if ticks%5 == 0 {
 				if e := r.Store.RecoverTasks(ctx); e != nil {
 					return e
@@ -131,10 +154,10 @@ func (r Runner) Execute(ctx context.Context, id string) error {
 	var vectors [][]float64
 	if len(text) == 0 {
 		e = domain.ErrInvalid
-	} else {
+	} else if r.VectorEnabled {
 		vectors, e = r.Index.Embed(job, text)
 	}
-	if e == nil {
+	if e == nil && r.VectorEnabled {
 		e = r.Index.Upsert(job, t.ClassID, t.MaterialID, chunks, vectors)
 	}
 	if e == nil {

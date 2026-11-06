@@ -19,7 +19,7 @@ def run():
  out=Path(os.environ.get('APITEST_REPORT_DIR',str(Path(__file__).parents[1]/'reports/api')));out.mkdir(parents=True,exist_ok=True)
  raw=json.dumps(rows,ensure_ascii=False,indent=2)
  # Never include raw request/response bodies or tokens in reports.
- for v in [a.password,*a.tokens.values()]:raw=raw.replace(v,'[REDACTED]')
+ for v in [*a.passwords.values(),*a.tokens.values()]:raw=raw.replace(v,'[REDACTED]')
  (out/'report.json').write_text(raw);(out/'report.html').write_text('<!doctype html><meta charset="utf-8"><h1>CampusClaw Plus API verification</h1><pre>'+html.escape(raw)+'</pre>')
  return bool(not rows or any(r['status']!='passed' for r in rows))
 if __name__=='__main__':raise SystemExit(run())

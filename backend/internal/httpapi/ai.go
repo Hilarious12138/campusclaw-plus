@@ -3,6 +3,7 @@ package httpapi
 import (
 	"campusclaw-plus/internal/domain"
 	"encoding/json"
+	"errors"
 	"io"
 	"net/http"
 	"strings"
@@ -100,6 +101,9 @@ func (p *Platform) ai(w http.ResponseWriter, r *http.Request, u domain.Identity,
 	return nil, domain.ErrNotFound, false, 0
 }
 func (p *Platform) stream(w http.ResponseWriter, r *http.Request, u domain.Identity, event domain.Audit, id, conv string) (bool, error) {
+	if !p.AIEnabled {
+		return false, errors.New("AI integration disabled")
+	}
 	var b struct {
 		Content string `json:"content"`
 	}

@@ -58,6 +58,9 @@ type TaskStore interface {
 	CompleteTask(context.Context, Task, []Chunk) error
 	FailTask(context.Context, Task, string, bool) error
 	RecoverTasks(context.Context) error
+	Orphans(context.Context) ([]Material, error)
+	MarkCleaned(context.Context, string) error
+	CleanupExpired(context.Context) error
 }
 type Queue interface {
 	Publish(context.Context, Outbox) error
@@ -65,6 +68,7 @@ type Queue interface {
 	Close() error
 }
 type Index interface {
+	Delete(context.Context, []string) error
 	Embed(context.Context, []string) ([][]float64, error)
 	Upsert(context.Context, string, string, []Chunk, [][]float64) error
 	Search(context.Context, string, []float64, int, []string) ([]ScoredID, error)

@@ -2,7 +2,7 @@ import json,os,subprocess,urllib.request,urllib.error
 from pathlib import Path
 class API:
  def __init__(self):
-  self.base=os.environ.get('BASE_URL','http://127.0.0.1:3011');self.password=os.environ['SEED_PASSWORD'];self.tokens={}
+  self.base=os.environ.get('BASE_URL','http://127.0.0.1:3011');self.passwords={name:os.environ['SEED_'+name.upper()+'_PASSWORD'] for name in ['teacher_a','student_a','teacher_b','student_b']};self.password=self.passwords['teacher_a'];self.tokens={}
  def request(self,method,path,body=None,token=None,status=200,headers=None):
   h={'Content-Type':'application/json'}
   if token:h['Authorization']='Bearer '+token
@@ -14,19 +14,19 @@ class API:
   payload=r.read();assert r.status==status,(method,path,r.status,status)
   out=json.loads(payload);assert out['request_id'];assert r.headers['X-Request-ID']==out['request_id']
   if status>=400:assert 'data' not in out
-  assert self.password.encode() not in payload
+  assert all(v.encode() not in payload for v in self.passwords.values())
   return out
  def login(self,name):
-  if name not in self.tokens:self.tokens[name]=self.request('POST','/api/auth/login',{'username':name,'password':self.password})['data']['access_token']
+  if name not in self.tokens:self.tokens[name]=self.request('POST','/api/auth/login',{'username':name,'password':self.passwords[name]})['data']['access_token']
   return self.tokens[name]
  def sql(self,query):
   project=os.environ.get('APITEST_DOCKER_PROJECT')
   if project:
-   cmd=[os.environ.get('DOCKER_BIN','docker'),'exec','-i',project+'-db-1','sh','-c','MYSQL_PWD="$MYSQL_PASSWORD" mysql -N -B -u "$MYSQL_USER" "$MYSQL_DATABASE"']
+   cmd=[os.environ.get('DOCKER_BIN','docker'),'exec','-i',project+'-db-1','sh','-c','MYSQL_PWD="$MYSQL_PASSWORD" mysql -N -B --raw -u "$MYSQL_USER" "$MYSQL_DATABASE"']
    p=subprocess.run(cmd,input=query,text=True,capture_output=True,timeout=20)
   else:
    env=os.environ.copy();env['MYSQL_PWD']=env['DB_PASSWORD']
-   p=subprocess.run(['mysql','--skip-ssl','-N','-B','-h',env.get('DB_HOST','db'),'-u',env['DB_USER'],env['DB_NAME']],input=query,text=True,capture_output=True,env=env,timeout=20)
+   p=subprocess.run(['mysql','--skip-ssl','-N','-B','--raw','-h',env.get('DB_HOST','db'),'-u',env['DB_USER'],env['DB_NAME']],input=query,text=True,capture_output=True,env=env,timeout=20)
   assert p.returncode==0,'test SQL execution failed'
   return p.stdout.strip()
  def upload(self,title,text,token,key,status=202):

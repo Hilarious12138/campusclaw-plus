@@ -59,7 +59,7 @@ func (s Resources) Save(ctx context.Context, u domain.Identity, v domain.Resourc
 	}
 	allowed := map[string]map[string]bool{
 		"agents":  {"name": true, "prompt": true, "mode": true, "skill_ids": true, "material_ids": true, "enabled": true},
-		"skills":  {"name": true, "conditions": true, "instructions": true, "tools": true, "enabled": true},
+		"skills":  {"name": true, "conditions": true, "instructions": true, "material_hint": true, "tools": true, "enabled": true},
 		"prompts": {"name": true, "content": true},
 	}
 	fields, ok := allowed[v.Kind]
@@ -77,7 +77,7 @@ func (s Resources) Save(ctx context.Context, u domain.Identity, v domain.Resourc
 		return v, domain.ErrInvalid
 	}
 	// Typed structural validation prevents clients smuggling malformed role/tool fields.
-	for _, k := range []string{"mode", "prompt", "content", "instructions"} {
+	for _, k := range []string{"mode", "prompt", "content", "instructions", "material_hint"} {
 		if raw, ok := b[k]; ok {
 			var text string
 			if json.Unmarshal(raw, &text) != nil || len(text) > 32000 {

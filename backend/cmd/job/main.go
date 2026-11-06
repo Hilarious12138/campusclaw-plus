@@ -52,7 +52,11 @@ func run(log *slog.Logger) error {
 	db.TaskRetryBaseMS = c.TaskRetryBaseMS
 	ctx, cancel := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
 	defer cancel()
-	index := &repository.Index{EmbeddingURL: c.EmbeddingURL, EmbeddingKey: c.EmbeddingKey, EmbeddingModel: c.EmbeddingModel, QdrantURL: c.QdrantURL, Dimension: c.EmbeddingDim, Client: repository.InternalClient()}
+	indexClient := repository.InternalClient()
+	if c.AIEnabled {
+		indexClient.Timeout = time.Duration(c.EmbeddingTimeoutSeconds) * time.Second
+	}
+	index := &repository.Index{EmbeddingURL: c.EmbeddingURL, EmbeddingKey: c.EmbeddingKey, EmbeddingModel: c.EmbeddingModel, QdrantURL: c.QdrantURL, Dimension: c.EmbeddingDim, Client: indexClient}
 	addr := os.Getenv("JOB_HEALTH_ADDR")
 	if addr == "" {
 		return fmt.Errorf("required config: JOB_HEALTH_ADDR")
@@ -79,7 +83,7 @@ func run(log *slog.Logger) error {
 		}
 	}()
 	defer health.Close()
-	runner := service.Runner{Timeout: time.Duration(c.TaskTimeoutSeconds) * time.Second, Lease: time.Duration(c.TaskLeaseSeconds) * time.Second, Poll: time.Duration(c.TaskPollMS) * time.Millisecond, Store: db, Index: index, Owner: repository.NewID(), Log: log}
+	runner := service.Runner{VectorEnabled: c.AIEnabled, Timeout: time.Duration(c.TaskTimeoutSeconds) * time.Second, Lease: time.Duration(c.TaskLeaseSeconds) * time.Second, Poll: time.Duration(c.TaskPollMS) * time.Millisecond, Store: db, Index: index, Owner: repository.NewID(), Log: log}
 	address := url.URL{Scheme: "amqp", Host: c.BrokerAddr, User: url.UserPassword(c.BrokerUser, c.BrokerPassword), Path: "/"}
 	for ctx.Err() == nil {
 		q, e := repository.OpenRabbit(address.String())

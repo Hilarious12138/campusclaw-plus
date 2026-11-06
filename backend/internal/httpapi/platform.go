@@ -17,6 +17,7 @@ import (
 )
 
 type Platform struct {
+	AIEnabled     bool
 	Log           *slog.Logger
 	Auth          service.Auth
 	Origin        string
@@ -200,7 +201,7 @@ func (p *Platform) serve(w http.ResponseWriter, r *http.Request, id string) bool
 				var token string
 				token, u, e = p.Auth.Login(r.Context(), b.Username, b.Password, host)
 				if e == nil {
-					data = map[string]any{"access_token": token, "token_type": "Bearer", "expires_in": 1800, "user": u}
+					data = map[string]any{"access_token": token, "token_type": "Bearer", "expires_in": 1800, "user": u, "features": map[string]bool{"ai_enabled": p.AIEnabled}}
 				}
 			}
 		case "/api/me":

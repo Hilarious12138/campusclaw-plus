@@ -1293,6 +1293,9 @@
                   "instructions": {
                     "type": "string"
                   },
+                  "material_hint": {
+                    "type": "string"
+                  },
                   "conditions": {
                     "type": "array",
                     "items": {
@@ -1546,6 +1549,9 @@
                     "type": "string"
                   },
                   "instructions": {
+                    "type": "string"
+                  },
+                  "material_hint": {
                     "type": "string"
                   },
                   "conditions": {

@@ -8,6 +8,7 @@ import (
 	"encoding/hex"
 	"errors"
 	"strconv"
+	"time"
 )
 
 func materialHash(title, body string) string {
@@ -202,6 +203,8 @@ func (m *MySQL) ClaimTask(ctx context.Context, id, owner string) (domain.Task, d
 	t.Fence++
 	t.Owner = owner
 	t.Status = "running"
+	started := time.Now().UTC()
+	t.StartedAt = &started
 	if _, e = tx.ExecContext(ctx, "INSERT INTO task_attempts(task_id,attempt,started_at) VALUES(?,?,UTC_TIMESTAMP(6))", id, t.Attempts); e != nil {
 		return t, mat, e
 	}
@@ -303,6 +306,13 @@ func (m *MySQL) FailTask(ctx context.Context, t domain.Task, code string, retry 
 	if e = enqueue(ctx, tx, t.ID, kind, t.Fence, delay); e != nil {
 		return e
 	}
+	duration := int64(0)
+	if t.StartedAt != nil {
+		duration = time.Since(*t.StartedAt).Milliseconds()
+	}
+	if e = appendAudit(ctx, tx, domain.Audit{ActorID: t.CreatedBy, ClassID: t.ClassID, Operation: "material.index", ObjectType: "material", ObjectID: t.MaterialID, HTTPStatus: 503, Outcome: code, TaskID: t.ID, RequestID: t.ID, DurationMS: duration, Usage: "unknown"}); e != nil {
+		return e
+	}
 	return tx.Commit()
 }
 func (m *MySQL) RecoverTasks(ctx context.Context) error {
@@ -352,4 +362,38 @@ func (m *MySQL) RecoverTasks(ctx context.Context) error {
 		}
 	}
 	return nil
+}
+
+func (m *MySQL) Orphans(ctx context.Context) ([]domain.Material, error) {
+	rows, e := m.db.QueryContext(ctx, "SELECT "+matFields+" FROM materials m JOIN tasks t ON t.id=m.task_id LEFT JOIN task_cleanup c ON c.task_id=t.id WHERE t.status='failed' AND m.active_version='' AND c.task_id IS NULL ORDER BY t.id LIMIT 20")
+	if e != nil {
+		return nil, e
+	}
+	defer rows.Close()
+	out := []domain.Material{}
+	for rows.Next() {
+		v, e := scanMaterial(rows)
+		if e != nil {
+			return nil, e
+		}
+		out = append(out, v)
+	}
+	return out, rows.Err()
+}
+func (m *MySQL) MarkCleaned(ctx context.Context, tid string) error {
+	_, e := m.db.ExecContext(ctx, "INSERT INTO task_cleanup VALUES(?,UTC_TIMESTAMP(6)) ON DUPLICATE KEY UPDATE cleaned_at=VALUES(cleaned_at)", tid)
+	return e
+}
+func (m *MySQL) CleanupExpired(ctx context.Context) error {
+	tx, e := m.db.BeginTx(ctx, nil)
+	if e != nil {
+		return e
+	}
+	defer tx.Rollback()
+	for _, q := range []string{"DELETE FROM revoked_tokens WHERE expires_at<UTC_TIMESTAMP(6)", "DELETE FROM login_failures WHERE window_start<TIMESTAMPADD(MINUTE,-15,UTC_TIMESTAMP(6))", "DELETE FROM audit_events WHERE occurred_at<TIMESTAMPADD(DAY,-30,UTC_TIMESTAMP(6)) LIMIT 1000", "DELETE t FROM conversation_turns t JOIN conversations c ON c.id=t.conversation_id WHERE c.created_at<TIMESTAMPADD(DAY,-30,UTC_TIMESTAMP(6)) AND (c.lease_until IS NULL OR c.lease_until<UTC_TIMESTAMP(6))", "DELETE FROM conversations WHERE created_at<TIMESTAMPADD(DAY,-30,UTC_TIMESTAMP(6)) AND (lease_until IS NULL OR lease_until<UTC_TIMESTAMP(6)) LIMIT 1000"} {
+		if _, e = tx.ExecContext(ctx, q); e != nil {
+			return e
+		}
+	}
+	return tx.Commit()
 }

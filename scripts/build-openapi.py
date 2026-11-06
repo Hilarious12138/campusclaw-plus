@@ -21,7 +21,7 @@ add('/api/auth/logout','POST','撤销当前访问令牌');add('/api/me','GET','�
 for kind in ['agents','skills','prompts']:
  fields={'name':S}
  if kind=='agents':fields.update(prompt=S,mode={'type':'string','enum':['knowledge','guidance']},skill_ids={'type':'array','items':S},material_ids={'type':'array','items':S},enabled={'type':'boolean'})
- if kind=='skills':fields.update(instructions=S,conditions={'type':'array','items':S},tools={'type':'array','items':S,'maxItems':2},enabled={'type':'boolean'})
+ if kind=='skills':fields.update(instructions=S,material_hint=S,conditions={'type':'array','items':S},tools={'type':'array','items':S,'maxItems':2},enabled={'type':'boolean'})
  if kind=='prompts':fields['content']=S
  add('/api/'+kind,'GET','本班列表');add('/api/'+kind,'POST','教师创建，原子审计',obj(fields,['name']))
  add('/api/'+kind+'/{id}','GET','本班详情');add('/api/'+kind+'/{id}','PUT','教师更新，If-Match为当前revision',obj(fields,['name']),params=[{'name':'If-Match','in':'header','required':True,'schema':{'type':'integer','minimum':1}}]);add('/api/'+kind+'/{id}','DELETE','教师删除')

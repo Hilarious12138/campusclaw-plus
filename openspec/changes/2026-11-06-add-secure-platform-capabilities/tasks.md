@@ -30,4 +30,4 @@
 - [ ] 5.2 扩展apitest、make check、安全门禁和Docker grade/HTML/JSON；verify：R8/S17，三组回归和四步主链路，缺业务/阶段/证据均失败。
 - [ ] 5.3 生成design列出的固定reports及脱敏入库白名单；verify：含risk-authz、红绿、基线、修复、实验与两份AI/脚本评审；真实返工如实记，独立人类/异机未做不标通过。
 - [ ] 5.4 回填八规范、roadmap、README安全入口、迁移部署与回滚；verify：每阶段已实现和未实现清楚，公开资料无课程号/个人展示稿。
-- [ ] 5.5 每阶段按实际门禁审核归档/PR合入，最终strict/check/security/grade复验；verify：同提交可追溯，异步change单独真实验收，缺批改/人类评审保留限制不宣称课程全部完成。
+- [ ] 5.5 每阶段按实际门禁审核归档/PR合入，最终strict/check/security/grade复验；verify：同提交可追溯，异步change单独真实验收，缺批改/人类评审保留限制不宣称超出验证范围。
